@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Linq;
+using System;
 
 public class WorldDisplayer : MonoBehaviour
 {
@@ -16,68 +17,73 @@ public class WorldDisplayer : MonoBehaviour
     public float jitterCutEvery = 3;
     public float brushSize = 1f;
     public float capitalSize = 1.5f;
+    public float siteTextureMargin = 50f;
     public DisplayMode mode;
 
     public TextMeshProUGUI debugText;
+    public GameObject childExample;
 
     public enum DisplayMode { REGION, TERRITORY, KINGDOM};
 
     RawImage image;
     bool shouldExtraDraw = false;
-    Texture2D tx;
+    int resolution = 1;
+    Texture2D bgTex;
+    Dictionary<Site, RawImage> sitesChildren;
+    float scaleFactor;
 
 
     private void Start()
     {
-        tx = new Texture2D(1, 1);
+        bgTex = new Texture2D(resolution, resolution);
         image = GetComponent<RawImage>();
+        scaleFactor = transform.parent.GetComponent<RectTransform>().sizeDelta.x + GetComponent<RectTransform>().offsetMax.y - GetComponent<RectTransform>().offsetMin.y;
+        sitesChildren = new Dictionary<Site, RawImage>();
     }
 
     // Here is a very simple way to display the result using a simple bresenham line algorithm
     // Just attach this script to a quad
-    public void DrawMap(Map map, int resolution)
+    public void DrawMap(Map map, int _resolution)
     {
         if (image == null) { return; }
 
-        tx.Resize(resolution, resolution);
+        resolution = _resolution;
+        bgTex.Resize(resolution, resolution);
         shouldExtraDraw = !shouldExtraDraw;
-
+        
 
         // Fill background
-        var pixels = tx.GetPixels();
+        var pixels = bgTex.GetPixels();
         for (var i = 0; i < pixels.Length; ++i)
         {
             pixels[i] = backgroundColor;
         }
-        tx.SetPixels(pixels);
+        bgTex.SetPixels(pixels);
 
 
         // Regions
-        int draws = 0;
         if (mode == DisplayMode.REGION)
         {
-            draws += DrawRegions(map.regions);
+            DrawRegions(map.regions);
         }
 
         if (mode == DisplayMode.KINGDOM)
         {
-            draws += DrawRegions(map.regions);
-            draws += DrawKingdoms(map.world.kingdoms);
+            DrawRegions(map.regions);
+            DrawKingdoms(map.world.kingdoms);
         }
-       
 
-        tx.Apply();
-        image.texture = tx;
+
+        bgTex.Apply();
+        image.texture = bgTex;
 
         debugText.text = "Regions : " + map.regions.Count + "\n" +
-            "Drawn edges : " + draws + "\n" +
             "Kingdoms : " + map.world.kingdoms.Count;
 
     }
 
-    int DrawKingdoms(List<Kingdom> kingdoms)
+    void DrawKingdoms(List<Kingdom> kingdoms)
     {
-        int draws = 0;
         foreach (Kingdom kingdom in kingdoms)
         {
             List<Edge> frontiers = kingdom.GetFrontiers();
@@ -86,8 +92,9 @@ public class WorldDisplayer : MonoBehaviour
             {
                 foreach (Site site in region.sites)
                 {
-                    StarFillSite(kingdom.GetColor(), site);
-
+                    print("Filling " + site + " for kingdom " + kingdom.name);
+                    FillSite(kingdom.GetColor(), site);
+                    /*
                     foreach(Edge edge in site.Edges)
                     {
                         if (frontiers.Contains(edge))
@@ -100,43 +107,119 @@ public class WorldDisplayer : MonoBehaviour
                             DrawEdge(edge, kingdom.GetColor(), true, brushSize/2f);
                         }
                     }
+                    */
                 }
             }
 
             // Capital
+            /*
             Region mainland = kingdom.GetMainland();
             Vector2f capitalCoords = new Vector2f((int)mainland.sites[mainland.capital].Coord.x, (int)mainland.sites[mainland.capital].Coord.y);
             DrawCircle(capitalCoords, tx, backgroundColor, brushSize * capitalSize);
             DrawCircle(capitalCoords, tx, capitalColor, brushSize * capitalSize-2);
+            */
 
         }
-
-        return draws;
     }
 
 
     // Filling by tracing rays to the center
-    void StarFillSite(Color c, Site site)
+    void FillSite(Color c, Site site)
     {
-        foreach(Edge edge in site.Edges)
+        // 1) Trapping the site in a square
+        Vector2[] square =
+            new Vector2[2] { 
+                new Vector2(site.Coord.x, site.Coord.y), //-X -Y
+                new Vector2(site.Coord.x, site.Coord.y) // X Y
+            };
+
+        foreach (Edge edge in site.Edges)
         {
-            var jittered = JitterLine(edge.ClippedEnds[LR.LEFT], edge.ClippedEnds[LR.RIGHT], 2, 0);
-            foreach (KeyValuePair<Vector2f, Vector2f> pair in jittered)
+            List<Vector2f> points = new List<Vector2f>() { edge.ClippedEnds[LR.LEFT], edge.ClippedEnds[LR.RIGHT] };
+            foreach(Vector2f point in points)
             {
-                DrawLine(
-                    pair.Key,
-                    site.Coord,
-                    tx,
-                    c
-                );
+                square[0].x = Mathf.Min(square[0].x, point.x);
+                square[0].y = Mathf.Min(square[0].y, point.y);
+                square[1].x = Mathf.Max(square[1].x, point.x);
+                square[1].y = Mathf.Max(square[1].y, point.y);
             }
         }
-    }
+        
+        // Applying margin
+        square[0].x = square[0].x - siteTextureMargin;
+        square[0].y = square[0].y - siteTextureMargin;
+        square[1].x = square[1].x + siteTextureMargin;
+        square[1].y = square[1].y + siteTextureMargin;
 
-    int DrawRegions(List<Region> regions)
+        RawImage ri;
+        Texture2D tex;
+        
+        if (!sitesChildren.ContainsKey(site))
+        {
+            float factor = (scaleFactor / resolution);
+            GameObject siteO = Instantiate(childExample, transform);
+            siteO.SetActive(true);
+            RectTransform rt = siteO.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(square[1].x - square[0].x, square[1].y - square[0].y)* factor;
+            rt.anchoredPosition = new Vector2(site.Coord.x * factor, site.Coord.y * factor);
+            sitesChildren[site] = siteO.GetComponent<RawImage>();
+            tex = new Texture2D(Mathf.RoundToInt(square[1].x - square[0].x), Mathf.RoundToInt(square[1].y - square[0].y));
+        }
+        else
+        {
+            tex = (Texture2D)sitesChildren[site].texture;
+        }
+        ri = sitesChildren[site];
+        
+        // Fill background
+        var pixels = tex.GetPixels();
+        for (var i = 0; i < pixels.Length; ++i)
+        {
+            pixels[i] = new Color(1, 0, 1, 0);
+        }
+        tex.SetPixels(pixels);
+
+        DrawSite(tex, site, c);
+        
+        // Fill the site
+        tex.Apply();
+        for (int i = 0; i < tex.height; i++)
+        {
+            DrawScanline(new Vector2f(0f, i), new Vector2f((float)tex.width, i), tex, c);
+        }
+
+        tex.Apply();
+        ri.texture = tex;
+        /*
+        Vector2Int startingCoord = new Vector2Int(Mathf.RoundToInt(site.Coord.x), Mathf.RoundToInt(site.Coord.y));
+
+        FloodFill(startingCoord, t, c);
+        */
+
+    }
+    /*
+    void FillSite(Color c, Site site, Color t)
+    {
+        Vector2Int startingCoord = new Vector2Int(Mathf.RoundToInt(site.Coord.x), Mathf.RoundToInt(site.Coord.y));
+
+        FloodFill(startingCoord, t, c);
+        
+    }
+    */
+
+    static void FillRectangle(Vector2[] square, Texture2D tx, Color c)
+    {
+
+        for (float i = square[0].y; i < square[1].y; i++)
+        {
+            DrawLine(new Vector2f(square[0].x, Mathf.RoundToInt(i)), new Vector2f(square[1].x, Mathf.RoundToInt(i)), tx, c);
+        }
+    }
+    
+
+    void DrawRegions(List<Region> regions)
     {
         List<Edge> drawnEdges = new List<Edge>();
-        int draws = 0;
         foreach (Region region in regions)
         {
             // Boundaries
@@ -147,16 +230,36 @@ public class WorldDisplayer : MonoBehaviour
                     continue;
                 }
 
-                DrawEdge(edge, foregroundColor);
+                DrawEdge(edge, bgTex, foregroundColor);
                 drawnEdges.Add(edge);
-                draws++;
             }
         }
-
-        return draws;
     }
 
-    void DrawEdge(Edge edge, Color c, bool isDotted=false, float dotWeight=1f)
+    void DrawSite(Texture2D tex, Site site, Color c)
+    {
+        Vector2[] square =
+            new Vector2[2] {
+                new Vector2(siteTextureMargin, siteTextureMargin), //-X -Y
+                new Vector2(tex.width-siteTextureMargin, tex.height-siteTextureMargin) // X Y
+            };
+        
+        var center = Vector2.Lerp(square[0], square[1], 0.5f);
+
+        foreach (Edge edge in site.Edges)
+        {
+            if (edge.ClippedEnds == null) continue;
+
+            var position = site.Coord;
+
+            var left = edge.ClippedEnds[LR.LEFT] - position + new Vector2f(center.x, center.y);
+            var right = edge.ClippedEnds[LR.RIGHT] - position + new Vector2f(center.x, center.y);
+
+            DrawLine(left, right, tex, c);
+        }
+    }
+
+    void DrawEdge(Edge edge, Texture2D tx, Color c, bool isDotted=false, float dotWeight=1f)
     {
         // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
         if (edge.ClippedEnds == null) return;
@@ -187,10 +290,61 @@ public class WorldDisplayer : MonoBehaviour
         }
     }
 
+    static void DrawScanline(Vector2f p0, Vector2f p1, Texture2D tx, Color c)
+    {
+        bool shouldFill = false;
+
+        var pixels = GetPixelsOnLine(p0, p1);
+        foreach(var pixel in pixels)
+        {
+            var iPixel = new Vector2Int(Mathf.RoundToInt(pixel.x), Mathf.RoundToInt(pixel.y));
+            var currentColor = tx.GetPixel(iPixel.x, iPixel.y);
+
+            if (shouldFill)
+            {
+                if (currentColor.a > 0)
+                {
+                    shouldFill = false;
+                }
+                else
+                {
+                    tx.SetPixel(iPixel.x, iPixel.y, c);
+                }
+            }
+            else
+            {
+                if (currentColor.a > 0)
+                {
+                    //print("SHOULD FILL");
+                    shouldFill = true;
+                }
+            }
+        }
+    }
+
 
     // Bresenham line algorithm
     static void DrawLine(Vector2f p0, Vector2f p1, Texture2D tx, Color c, float brushSize=1f)
     {
+        var pixels = GetPixelsOnLine(p0, p1);
+
+        foreach (Vector2f px in pixels)
+        {
+            if (brushSize > 0)
+            {
+                DrawCircle(new Vector2f(px.x, px.y), tx, c, brushSize / 2);
+            }
+            else
+            {
+                tx.SetPixel(Mathf.RoundToInt(px.x), Mathf.RoundToInt(px.y), c);
+            }
+        }
+    }
+
+    static List<Vector2f> GetPixelsOnLine(Vector2f p0, Vector2f p1)
+    {
+        List<Vector2f> pixels = new List<Vector2f>();
+
         int x0 = (int)p0.x;
         int y0 = (int)p0.y;
         int x1 = (int)p1.x;
@@ -204,14 +358,7 @@ public class WorldDisplayer : MonoBehaviour
 
         while (true)
         {
-            if (brushSize > 0)
-            {
-                DrawCircle(new Vector2f(x0, y0), tx, c, brushSize/2);
-            }
-            else
-            {
-                tx.SetPixel(x0, y0, c);
-            }
+            pixels.Add(new Vector2f(x0, y0));
 
             if (x0 == x1 && y0 == y1) break;
             int e2 = 2 * err;
@@ -226,6 +373,8 @@ public class WorldDisplayer : MonoBehaviour
                 y0 += sy;
             }
         }
+
+        return pixels;
     }
 
     static void DrawCircle(Vector2f p0, Texture2D tx, Color c, float r=1f)
