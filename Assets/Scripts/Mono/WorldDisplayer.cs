@@ -180,12 +180,18 @@ public class WorldDisplayer : MonoBehaviour
         tex.SetPixels(pixels);
 
         DrawSite(tex, site, c);
-        
+
         // Fill the site
-        tex.Apply();
-        for (int i = 0; i < tex.height; i++)
+        var step = 1f;
+        Vector2[] squareCoords =
+            new Vector2[2] {
+                new Vector2(siteTextureMargin, siteTextureMargin), //-X -Y
+                new Vector2(tex.width-siteTextureMargin, tex.height-siteTextureMargin) // X Y
+            };
+
+        for (int i = 0; i < 11; i++)
         {
-            DrawScanline(new Vector2f(0f, i), new Vector2f((float)tex.width, i), tex, c);
+            DrawSite(tex, site, c, 0.1f*i, 2f);
         }
 
         tex.Apply();
@@ -236,7 +242,7 @@ public class WorldDisplayer : MonoBehaviour
         }
     }
 
-    void DrawSite(Texture2D tex, Site site, Color c)
+    void DrawSite(Texture2D tex, Site site, Color c, float factor=1f, float brushSize=1f)
     {
         Vector2[] square =
             new Vector2[2] {
@@ -252,10 +258,12 @@ public class WorldDisplayer : MonoBehaviour
 
             var position = site.Coord;
 
-            var left = edge.ClippedEnds[LR.LEFT] - position + new Vector2f(center.x, center.y);
-            var right = edge.ClippedEnds[LR.RIGHT] - position + new Vector2f(center.x, center.y);
+            var left = edge.ClippedEnds[LR.LEFT] - position;
+            var right = edge.ClippedEnds[LR.RIGHT] - position;
+            left = new Vector2f(left.x * factor, left.y * factor);
+            right = new Vector2f(right.x * factor, right.y * factor);
 
-            DrawLine(left, right, tex, c);
+            DrawLine(left + new Vector2f(center.x, center.y), right + new Vector2f(center.x, center.y), tex, c, brushSize);
         }
     }
 
@@ -286,38 +294,6 @@ public class WorldDisplayer : MonoBehaviour
             dot = !dot;
             if (!isDotted || dot) { 
                 DrawLine(line.Key, line.Value, tx, c, brushSize);
-            }
-        }
-    }
-
-    static void DrawScanline(Vector2f p0, Vector2f p1, Texture2D tx, Color c)
-    {
-        bool shouldFill = false;
-
-        var pixels = GetPixelsOnLine(p0, p1);
-        foreach(var pixel in pixels)
-        {
-            var iPixel = new Vector2Int(Mathf.RoundToInt(pixel.x), Mathf.RoundToInt(pixel.y));
-            var currentColor = tx.GetPixel(iPixel.x, iPixel.y);
-
-            if (shouldFill)
-            {
-                if (currentColor.a > 0)
-                {
-                    shouldFill = false;
-                }
-                else
-                {
-                    tx.SetPixel(iPixel.x, iPixel.y, c);
-                }
-            }
-            else
-            {
-                if (currentColor.a > 0)
-                {
-                    //print("SHOULD FILL");
-                    shouldFill = true;
-                }
             }
         }
     }
