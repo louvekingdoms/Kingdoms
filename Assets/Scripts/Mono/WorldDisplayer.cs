@@ -21,11 +21,11 @@ public class WorldDisplayer : MonoBehaviour
     public DisplayMode mode;
 
     public TextMeshProUGUI debugText;
+    public RawImage regionsLayer;
     public GameObject childExample;
 
     public enum DisplayMode { REGION, TERRITORY, KINGDOM};
 
-    RawImage image;
     bool shouldExtraDraw = false;
     int resolution = 1;
     Texture2D bgTex;
@@ -35,8 +35,9 @@ public class WorldDisplayer : MonoBehaviour
 
     private void Start()
     {
-        bgTex = new Texture2D(resolution, resolution);
-        image = GetComponent<RawImage>();
+        bgTex = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
+        bgTex.mipMapBias = 0f;
+        bgTex.filterMode = FilterMode.Point;
         scaleFactor = transform.parent.GetComponent<RectTransform>().sizeDelta.x + GetComponent<RectTransform>().offsetMax.y - GetComponent<RectTransform>().offsetMin.y;
         sitesChildren = new Dictionary<Site, RawImage>();
     }
@@ -45,7 +46,7 @@ public class WorldDisplayer : MonoBehaviour
     // Just attach this script to a quad
     public void DrawMap(Map map, int _resolution)
     {
-        if (image == null) { return; }
+        if (regionsLayer == null) { return; }
 
         resolution = _resolution;
         bgTex.Resize(resolution, resolution);
@@ -69,13 +70,13 @@ public class WorldDisplayer : MonoBehaviour
 
         if (mode == DisplayMode.KINGDOM)
         {
-            DrawRegions(map.regions);
             DrawKingdoms(map.world.kingdoms);
+            DrawRegions(map.regions);
         }
 
 
         bgTex.Apply();
-        image.texture = bgTex;
+        regionsLayer.texture = bgTex;
 
         debugText.text = "Regions : " + map.regions.Count + "\n" +
             "Kingdoms : " + map.world.kingdoms.Count;
@@ -86,57 +87,83 @@ public class WorldDisplayer : MonoBehaviour
     {
         foreach (Kingdom kingdom in kingdoms)
         {
-            List<Edge> frontiers = kingdom.GetFrontiers();
 
-            foreach (Region region in kingdom.GetTerritory())
-            {
-                foreach (Site site in region.sites)
-                {
-                    print("Filling " + site + " for kingdom " + kingdom.name);
-                    FillSite(kingdom.GetColor(), site);
-                    /*
-                    foreach(Edge edge in site.Edges)
-                    {
-                        if (frontiers.Contains(edge))
-                        {
-                            DrawEdge(edge, kingdom.GetColor());
-                        }
-                        else
-                        {
-                            DrawEdge(edge, Color.black);
-                            DrawEdge(edge, kingdom.GetColor(), true, brushSize/2f);
-                        }
-                    }
-                    */
-                }
-            }
-
-            // Capital
-            /*
-            Region mainland = kingdom.GetMainland();
-            Vector2f capitalCoords = new Vector2f((int)mainland.sites[mainland.capital].Coord.x, (int)mainland.sites[mainland.capital].Coord.y);
-            DrawCircle(capitalCoords, tx, backgroundColor, brushSize * capitalSize);
-            DrawCircle(capitalCoords, tx, capitalColor, brushSize * capitalSize-2);
-            */
+            DrawKingdom(kingdom);
 
         }
     }
 
 
-    // Filling by tracing rays to the center
-    void FillSite(Color c, Site site)
+    void DrawKingdom(Kingdom kingdom)
     {
+
+        // Frontiers
+        List <Edge> frontiers = kingdom.GetFrontiers();
+        foreach (Region region in kingdom.GetTerritory())
+        {
+            foreach (Site site in region.sites)
+            {
+                var image = GetSiteImage(site);
+                FillSite(kingdom.GetColor(), site);
+                /*
+                Texture2D tx = image.mainTexture;
+                foreach (Edge edge in site.Edges)
+                {
+                    if (frontiers.Contains(edge))
+                    {
+                        DrawEdge(edge, tx, foregroundColor);
+                    }
+                    else
+                    {
+                        DrawEdge(edge, tx, Color.black);
+                        DrawEdge(edge, tx, kingdom.GetColor(), true, brushSize / 2f);
+                    }
+                }
+                */
+            }
+        }
+
+        // Capital
+        Region mainland = kingdom.GetMainland();
+        Site capitalSite = mainland.sites[mainland.capital];
+
+        var img = GetSiteImage(capitalSite);
+        Texture2D tex = (Texture2D)img.mainTexture;
+
+        Vector2f capitalCoords = new Vector2f(tex.width/2, tex.height/2);
+        DrawCircle(capitalCoords, tex, backgroundColor, brushSize * capitalSize);
+        DrawCircle(capitalCoords, tex, capitalColor, brushSize * capitalSize-2);
+
+        // Capital name
+        var text = img.GetComponentInChildren<TextMeshProUGUI>();
+        
+        if (text != null)
+        {
+            text.text = kingdom.name;
+        }
+
+        tex.Apply();
+    }
+
+    RawImage GetSiteImage(Site site)
+    {
+        Texture2D tex;
+
         // 1) Trapping the site in a square
         Vector2[] square =
-            new Vector2[2] { 
+            new Vector2[2] {
                 new Vector2(site.Coord.x, site.Coord.y), //-X -Y
                 new Vector2(site.Coord.x, site.Coord.y) // X Y
             };
 
         foreach (Edge edge in site.Edges)
         {
+            if (edge.ClippedEnds == null)
+            {
+                continue;
+            }
             List<Vector2f> points = new List<Vector2f>() { edge.ClippedEnds[LR.LEFT], edge.ClippedEnds[LR.RIGHT] };
-            foreach(Vector2f point in points)
+            foreach (Vector2f point in points)
             {
                 square[0].x = Mathf.Min(square[0].x, point.x);
                 square[0].y = Mathf.Min(square[0].y, point.y);
@@ -144,7 +171,7 @@ public class WorldDisplayer : MonoBehaviour
                 square[1].y = Mathf.Max(square[1].y, point.y);
             }
         }
-        
+
         // Applying margin
         square[0].x = square[0].x - siteTextureMargin;
         square[0].y = square[0].y - siteTextureMargin;
@@ -152,25 +179,38 @@ public class WorldDisplayer : MonoBehaviour
         square[1].y = square[1].y + siteTextureMargin;
 
         RawImage ri;
-        Texture2D tex;
-        
+
         if (!sitesChildren.ContainsKey(site))
         {
             float factor = (scaleFactor / resolution);
             GameObject siteO = Instantiate(childExample, transform);
             siteO.SetActive(true);
             RectTransform rt = siteO.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(square[1].x - square[0].x, square[1].y - square[0].y)* factor;
+            rt.sizeDelta = new Vector2(square[1].x - square[0].x, square[1].y - square[0].y) * factor;
             rt.anchoredPosition = new Vector2(site.Coord.x * factor, site.Coord.y * factor);
             sitesChildren[site] = siteO.GetComponent<RawImage>();
             tex = new Texture2D(Mathf.RoundToInt(square[1].x - square[0].x), Mathf.RoundToInt(square[1].y - square[0].y));
+            tex.mipMapBias = 0f;
+            tex.filterMode = FilterMode.Point;
         }
         else
         {
             tex = (Texture2D)sitesChildren[site].texture;
         }
+
         ri = sitesChildren[site];
-        
+        ri.texture = tex;
+
+        return ri;
+    }
+
+    // Filling by tracing rays to the center
+    void FillSite(Color c, Site site)
+    {
+
+        RawImage ri = GetSiteImage(site);
+        Texture2D tex = (Texture2D)ri.mainTexture;
+
         // Fill background
         var pixels = tex.GetPixels();
         for (var i = 0; i < pixels.Length; ++i)
@@ -182,7 +222,6 @@ public class WorldDisplayer : MonoBehaviour
         DrawSite(tex, site, c);
 
         // Fill the site
-        var step = 1f;
         Vector2[] squareCoords =
             new Vector2[2] {
                 new Vector2(siteTextureMargin, siteTextureMargin), //-X -Y
@@ -194,24 +233,11 @@ public class WorldDisplayer : MonoBehaviour
             DrawSite(tex, site, c, 0.1f*i, 2f);
         }
 
+        DrawSite(tex, site, backgroundColor, 1, 1);
+
         tex.Apply();
-        ri.texture = tex;
-        /*
-        Vector2Int startingCoord = new Vector2Int(Mathf.RoundToInt(site.Coord.x), Mathf.RoundToInt(site.Coord.y));
-
-        FloodFill(startingCoord, t, c);
-        */
 
     }
-    /*
-    void FillSite(Color c, Site site, Color t)
-    {
-        Vector2Int startingCoord = new Vector2Int(Mathf.RoundToInt(site.Coord.x), Mathf.RoundToInt(site.Coord.y));
-
-        FloodFill(startingCoord, t, c);
-        
-    }
-    */
 
     static void FillRectangle(Vector2[] square, Texture2D tx, Color c)
     {
@@ -240,6 +266,7 @@ public class WorldDisplayer : MonoBehaviour
                 drawnEdges.Add(edge);
             }
         }
+        regionsLayer.transform.SetSiblingIndex(regionsLayer.transform.parent.childCount - 1);
     }
 
     void DrawSite(Texture2D tex, Site site, Color c, float factor=1f, float brushSize=1f)

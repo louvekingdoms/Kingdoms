@@ -8,20 +8,27 @@ public class WorldGenerator : MonoBehaviour
 {
 
     public Map.Parameters parameters;
+    public World world;
     public float refreshRate = 1f;
     public int seed = 1;
-    public World world;
-    public int kingdoms = 0;
-    public int maxKingdomStrength = 5;
 
     public WorldDisplayer displayer;
 
+    private void Awake()
+    {
+        Library.Load();
+    }
+
     void Start()
     {
+
+        Ruleset rules = new Ruleset();
+        Rules.LoadRuleset(rules);
+
         world = new World(seed);
 
         world.map.Generate(parameters, world);
-        world.PopulateWithKingdoms(kingdoms, maxKingdomStrength);
+        world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
 
         StartCoroutine(RefreshDiagram());
     }

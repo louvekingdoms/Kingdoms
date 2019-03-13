@@ -27,7 +27,8 @@ public class World
             int size = 1+Mathf.FloorToInt((1 - Mathf.Clamp01(Mathf.Abs((float)r.NextGaussian()))) * maxSize) ;
             Region startingRegion = map.regions[Mathf.FloorToInt(Random.value * map.regions.Count)];
 
-            Kingdom kingdom = new Kingdom(i.ToString(), new List<Region>() { startingRegion });
+            var race = Library.races[Random.Range(0, Library.races.Count)];
+            Kingdom kingdom = new Kingdom(race.GetRandomKingdomName(), new List<Region>() { startingRegion }, race);
 
             for (int j = 0; j < size; j++)
             {

@@ -6,18 +6,22 @@ using UnityEngine;
 public class Kingdom
 {
     List<Region> territory = new List<Region>();
+    Race mainRace;
 
     public int mainland;
     public string name;
-    public float colorHue;
+    public Color color;
+    public int population;
 
-    public Kingdom(string _name, List<Region> _territory)
+    public Kingdom(string _name, List<Region> _territory, Race _mainRace)
     {
         TakeOwnership(_territory);
         SetName(_name);
         mainland = 0;
+        mainRace = _mainRace;
+        population = Rules.set[RULE.STARTING_POPULATION_PER_REGION].GetInt() * _territory.Count;
     }
-    
+
     ///////////////////////////////////
     ///
     ///     TERRITORY OWNERSHIP
@@ -104,14 +108,14 @@ public class Kingdom
 
     public Color GetColor()
     {
-        return Color.HSVToRGB(colorHue, 1, 1);
+        return color;
     }
 
     public void SetName(string _name)
     {
         var rnd = new System.Random(_name.GetHashCode());
         name = _name;
-        colorHue = (float)rnd.NextDouble();
+        color = Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
     }
 
 }
