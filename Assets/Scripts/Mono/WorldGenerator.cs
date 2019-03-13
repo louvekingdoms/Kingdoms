@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using csDelaunay;
-
+using CatchCo;
 
 public class WorldGenerator : MonoBehaviour
 {
@@ -31,6 +31,17 @@ public class WorldGenerator : MonoBehaviour
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
 
         StartCoroutine(RefreshDiagram());
+    }
+
+
+    [ExposeMethodInEditor]
+    public void Regenerate()
+    {
+        seed = Random.Range(0, 1000);
+        //world = new World(seed);
+
+        //world.map.Generate(parameters, world);
+        world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
     }
 
     IEnumerator RefreshDiagram()

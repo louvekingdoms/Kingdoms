@@ -54,7 +54,7 @@ public class RuleBool : IRuleValue
 public class Ruleset : Dictionary<RULE, IRuleValue> {
     public Ruleset()
     {
-        this.Add(RULE.STARTING_KINGDOMS, new RuleInt(10));
+        this.Add(RULE.STARTING_KINGDOMS, new RuleInt(1));
         this.Add(RULE.MAX_STARTING_KINGDOM_STRENGTH, new RuleInt(5));
         this.Add(RULE.STARTING_POPULATION_PER_REGION, new RuleInt(200));
     }

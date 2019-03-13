@@ -22,7 +22,10 @@ public class WorldDisplayer : MonoBehaviour
 
     public TextMeshProUGUI debugText;
     public RawImage regionsLayer;
-    public GameObject childExample;
+    public GameObject kingdomsLayer;
+    public GameObject tagsLayer;
+    public GameObject siteImageExample;
+    public GameObject siteTextExample;
 
     public enum DisplayMode { REGION, TERRITORY, KINGDOM};
 
@@ -30,6 +33,7 @@ public class WorldDisplayer : MonoBehaviour
     int resolution = 1;
     Texture2D bgTex;
     Dictionary<Site, RawImage> sitesChildren;
+    Dictionary<Site, TextMeshProUGUI> sitesTags;
     float scaleFactor;
 
 
@@ -40,6 +44,7 @@ public class WorldDisplayer : MonoBehaviour
         bgTex.filterMode = FilterMode.Point;
         scaleFactor = transform.parent.GetComponent<RectTransform>().sizeDelta.x + GetComponent<RectTransform>().offsetMax.y - GetComponent<RectTransform>().offsetMin.y;
         sitesChildren = new Dictionary<Site, RawImage>();
+        sitesTags = new Dictionary<Site, TextMeshProUGUI>();
     }
 
     // Here is a very simple way to display the result using a simple bresenham line algorithm
@@ -72,6 +77,7 @@ public class WorldDisplayer : MonoBehaviour
         {
             DrawKingdoms(map.world.kingdoms);
             DrawRegions(map.regions);
+            DrawKingdomsTags(map.world.kingdoms);
         }
 
 
@@ -83,14 +89,40 @@ public class WorldDisplayer : MonoBehaviour
 
     }
 
+    void DrawKingdomsTags(List<Kingdom> kingdoms)
+    {
+        //sitesTags
+        foreach (Kingdom kingdom in kingdoms)
+        {
+            DrawKingdomTag(kingdom);
+        }
+        tagsLayer.transform.SetSiblingIndex(regionsLayer.transform.parent.childCount - 1);
+    }
+
+    void DrawKingdomTag(Kingdom kingdom)
+    {
+
+        Region mainland = kingdom.GetMainland();
+        Site capitalSite = mainland.sites[mainland.capital];
+
+        var img = GetSiteTag(capitalSite);
+
+        // Capital name
+        var text = img.GetComponentInChildren<TextMeshProUGUI>();
+        
+        if (text != null)
+        {
+            text.text = kingdom.name;
+        }
+    }
+
     void DrawKingdoms(List<Kingdom> kingdoms)
     {
         foreach (Kingdom kingdom in kingdoms)
         {
-
             DrawKingdom(kingdom);
-
         }
+        kingdomsLayer.transform.SetSiblingIndex(regionsLayer.transform.parent.childCount - 1);
     }
 
 
@@ -135,14 +167,25 @@ public class WorldDisplayer : MonoBehaviour
         DrawCircle(capitalCoords, tex, capitalColor, brushSize * capitalSize-2);
 
         // Capital name
-        var text = img.GetComponentInChildren<TextMeshProUGUI>();
-        
-        if (text != null)
-        {
-            text.text = kingdom.name;
-        }
+        var tag = GetSiteTag(capitalSite);
+        tag.text = kingdom.name;
 
         tex.Apply();
+    }
+
+    TextMeshProUGUI GetSiteTag(Site site)
+    {
+        float factor = (scaleFactor / resolution);
+        if (!sitesTags.ContainsKey(site))
+        {
+            GameObject siteO = Instantiate(siteTextExample, siteTextExample.transform.parent);
+            siteO.SetActive(true);
+            var rt = siteO.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(site.Coord.x * factor, site.Coord.y * factor);
+            sitesTags[site] = siteO.GetComponentInChildren<TextMeshProUGUI>();
+        }
+
+        return sitesTags[site];
     }
 
     RawImage GetSiteImage(Site site)
@@ -183,7 +226,7 @@ public class WorldDisplayer : MonoBehaviour
         if (!sitesChildren.ContainsKey(site))
         {
             float factor = (scaleFactor / resolution);
-            GameObject siteO = Instantiate(childExample, transform);
+            GameObject siteO = Instantiate(siteImageExample, siteImageExample.transform.parent);
             siteO.SetActive(true);
             RectTransform rt = siteO.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(square[1].x - square[0].x, square[1].y - square[0].y) * factor;
