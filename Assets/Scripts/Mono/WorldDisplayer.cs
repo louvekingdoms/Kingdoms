@@ -21,7 +21,7 @@ public class WorldDisplayer : MonoBehaviour
     public DisplayMode mode;
 
     public TextMeshProUGUI debugText;
-    public RawImage regionsLayer;
+    public GameObject regionsLayer;
     public GameObject kingdomsLayer;
     public GameObject tagsLayer;
     public GameObject siteImageExample;
@@ -31,7 +31,6 @@ public class WorldDisplayer : MonoBehaviour
 
     bool shouldExtraDraw = false;
     int resolution = 1;
-    Texture2D bgTex;
     Dictionary<Site, RawImage> sitesChildren;
     Dictionary<Site, TextMeshProUGUI> sitesTags;
     float scaleFactor;
@@ -39,9 +38,6 @@ public class WorldDisplayer : MonoBehaviour
 
     private void Start()
     {
-        bgTex = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
-        bgTex.mipMapBias = 0f;
-        bgTex.filterMode = FilterMode.Point;
         scaleFactor = transform.parent.GetComponent<RectTransform>().sizeDelta.x + GetComponent<RectTransform>().offsetMax.y - GetComponent<RectTransform>().offsetMin.y;
         sitesChildren = new Dictionary<Site, RawImage>();
         sitesTags = new Dictionary<Site, TextMeshProUGUI>();
@@ -51,22 +47,10 @@ public class WorldDisplayer : MonoBehaviour
     // Just attach this script to a quad
     public void DrawMap(Map map, int _resolution)
     {
-        if (regionsLayer == null) { return; }
-
         resolution = _resolution;
-        bgTex.Resize(resolution, resolution);
         shouldExtraDraw = !shouldExtraDraw;
         
-
-        // Fill background
-        var pixels = bgTex.GetPixels();
-        for (var i = 0; i < pixels.Length; ++i)
-        {
-            pixels[i] = backgroundColor;
-        }
-        bgTex.SetPixels(pixels);
-
-
+        
         // Regions
         if (mode == DisplayMode.REGION)
         {
@@ -80,10 +64,7 @@ public class WorldDisplayer : MonoBehaviour
             DrawKingdomsTags(map.world.kingdoms);
         }
 
-
-        bgTex.Apply();
-        regionsLayer.texture = bgTex;
-
+        
         debugText.text = "Regions : " + map.regions.Count + "\n" +
             "Kingdoms : " + map.world.kingdoms.Count;
 
@@ -173,6 +154,25 @@ public class WorldDisplayer : MonoBehaviour
         tex.Apply();
     }
 
+
+    void DrawRegion(Region region)
+    {
+
+        var allowedEdges = region.GetFrontiers(); 
+        // Frontiers
+        foreach (Site site in region.sites)
+        {
+            var img = GetSiteImage(site, regionsLayer.transform);
+            Texture2D tex = (Texture2D)img.mainTexture;
+            
+            DrawSite(tex, site, Color.white,  1f, 2f, allowedEdges.innerEdges);
+
+            tex.Apply();
+            //((Texture2D)(image.mainTexture)).Apply();
+        }
+    }
+
+
     TextMeshProUGUI GetSiteTag(Site site)
     {
         float factor = (scaleFactor / resolution);
@@ -188,7 +188,7 @@ public class WorldDisplayer : MonoBehaviour
         return sitesTags[site];
     }
 
-    RawImage GetSiteImage(Site site)
+    RawImage GetSiteImage(Site site, Transform parent=null)
     {
         Texture2D tex;
 
@@ -226,15 +226,20 @@ public class WorldDisplayer : MonoBehaviour
         if (!sitesChildren.ContainsKey(site))
         {
             float factor = (scaleFactor / resolution);
-            GameObject siteO = Instantiate(siteImageExample, siteImageExample.transform.parent);
+
+            if (parent == null) parent = siteImageExample.transform.parent;
+
+            GameObject siteO = Instantiate(siteImageExample, parent);
             siteO.SetActive(true);
             RectTransform rt = siteO.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(square[1].x - square[0].x, square[1].y - square[0].y) * factor;
             rt.anchoredPosition = new Vector2(site.Coord.x * factor, site.Coord.y * factor);
             sitesChildren[site] = siteO.GetComponent<RawImage>();
-            tex = new Texture2D(Mathf.RoundToInt(square[1].x - square[0].x), Mathf.RoundToInt(square[1].y - square[0].y));
+            tex = new Texture2D(Mathf.RoundToInt(square[1].x - square[0].x), Mathf.RoundToInt(square[1].y - square[0].y), TextureFormat.RGBA32, true);
             tex.mipMapBias = 0f;
             tex.filterMode = FilterMode.Point;
+            FillRectangle(new Vector2[] { new Vector2(0, 0), new Vector2(tex.width, tex.height) }, tex, new Color(0, 0, 0, 0));
+            tex.Apply();
         }
         else
         {
@@ -294,9 +299,12 @@ public class WorldDisplayer : MonoBehaviour
 
     void DrawRegions(List<Region> regions)
     {
-        List<Edge> drawnEdges = new List<Edge>();
+        //List<Edge> drawnEdges = new List<Edge>();
         foreach (Region region in regions)
         {
+
+            DrawRegion(region);
+            /*
             // Boundaries
             foreach (Edge edge in region.GetOuterEdges())
             {
@@ -308,11 +316,14 @@ public class WorldDisplayer : MonoBehaviour
                 DrawEdge(edge, bgTex, foregroundColor);
                 drawnEdges.Add(edge);
             }
+            */
         }
         regionsLayer.transform.SetSiblingIndex(regionsLayer.transform.parent.childCount - 1);
     }
 
-    void DrawSite(Texture2D tex, Site site, Color c, float factor=1f, float brushSize=1f)
+
+    // Outlines the site
+    void DrawSite(Texture2D tex, Site site, Color c, float factor=1f, float brushSize=1f, List<Edge> ignoreEdges=null)
     {
         Vector2[] square =
             new Vector2[2] {
@@ -325,6 +336,7 @@ public class WorldDisplayer : MonoBehaviour
         foreach (Edge edge in site.Edges)
         {
             if (edge.ClippedEnds == null) continue;
+            if (ignoreEdges != null && ignoreEdges.Contains(edge)) continue;
 
             var position = site.Coord;
 
@@ -335,8 +347,11 @@ public class WorldDisplayer : MonoBehaviour
 
             DrawLine(left + new Vector2f(center.x, center.y), right + new Vector2f(center.x, center.y), tex, c, brushSize);
         }
+
     }
 
+
+        /*
     void DrawEdge(Edge edge, Texture2D tx, Color c, bool isDotted=false, float dotWeight=1f)
     {
         // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
@@ -368,7 +383,7 @@ public class WorldDisplayer : MonoBehaviour
         }
     }
 
-
+    */
     // Bresenham line algorithm
     static void DrawLine(Vector2f p0, Vector2f p1, Texture2D tx, Color c, float brushSize=1f)
     {

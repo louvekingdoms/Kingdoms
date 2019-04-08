@@ -79,7 +79,7 @@ public class Kingdom
         List<Edge> internalEdges = new List<Edge>();
         foreach (Region region in territory)
         {
-            var bounds = region.GetOuterEdges();
+            var bounds = region.GetFrontiers().outerEdges;
             
             foreach (Edge edge in bounds)
             {

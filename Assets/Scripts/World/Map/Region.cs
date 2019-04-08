@@ -21,7 +21,13 @@ public class Region
         map = _map;
     }
 
-    public List<Edge> GetOuterEdges()
+    public class Frontiers
+    {
+        public List<Edge> innerEdges;
+        public List<Edge> outerEdges;
+    }
+
+    public Frontiers GetFrontiers()
     {
         var edges = new List<Edge>();
 
@@ -45,7 +51,9 @@ public class Region
             finalEdges.Add(edge);
         }
 
-        return finalEdges;
+        internalEdges.RemoveAll(o => finalEdges.Contains(o));
+
+        return new Frontiers() { innerEdges = internalEdges, outerEdges = finalEdges };
     }
 
     public List<Region> GetNeighbors()

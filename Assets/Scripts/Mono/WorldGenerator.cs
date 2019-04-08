@@ -38,9 +38,9 @@ public class WorldGenerator : MonoBehaviour
     public void Regenerate()
     {
         seed = Random.Range(0, 1000);
-        //world = new World(seed);
+        world = new World(seed);
 
-        //world.map.Generate(parameters, world);
+        world.map.Generate(parameters, world);
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
     }
 
