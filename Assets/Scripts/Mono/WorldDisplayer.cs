@@ -20,6 +20,7 @@ public class WorldDisplayer : MonoBehaviour
     public float siteTextureMargin = 50f;
     public int regionResolution = 256;
     public DisplayMode mode;
+    public enum DisplayMode { REGION, TERRITORY, KINGDOM };
 
     public TextMeshProUGUI debugText;
     public GameObject regionsLayer;
@@ -28,7 +29,6 @@ public class WorldDisplayer : MonoBehaviour
     public GameObject siteImageExample;
     public GameObject siteTextExample;
 
-    public enum DisplayMode { REGION, TERRITORY, KINGDOM};
 
     bool shouldExtraDraw = false;
     Dictionary<Site, GameObject> sitesGameObjects = new Dictionary<Site, GameObject>();
