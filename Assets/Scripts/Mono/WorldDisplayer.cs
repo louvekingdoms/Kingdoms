@@ -18,6 +18,7 @@ public class WorldDisplayer : MonoBehaviour
     public float brushSize = 1f;
     public float capitalSize = 1.5f;
     public float siteTextureMargin = 50f;
+    public int regionResolution = 256;
     public DisplayMode mode;
 
     public TextMeshProUGUI debugText;
@@ -30,12 +31,11 @@ public class WorldDisplayer : MonoBehaviour
     public enum DisplayMode { REGION, TERRITORY, KINGDOM};
 
     bool shouldExtraDraw = false;
-    int resolution = 1;
-    Dictionary<Site, RawImage> sitesChildren;
-    Dictionary<Site, TextMeshProUGUI> sitesTags;
+    Dictionary<Site, GameObject> sitesGameObjects = new Dictionary<Site, GameObject>();
+    Dictionary<Site, TextMeshProUGUI> sitesTags = new Dictionary<Site, TextMeshProUGUI>();
     float scaleFactor;
 
-
+    /*
     private void Start()
     {
         scaleFactor = transform.parent.GetComponent<RectTransform>().sizeDelta.x + GetComponent<RectTransform>().offsetMax.y - GetComponent<RectTransform>().offsetMin.y;
@@ -45,9 +45,9 @@ public class WorldDisplayer : MonoBehaviour
 
     // Here is a very simple way to display the result using a simple bresenham line algorithm
     // Just attach this script to a quad
-    public void DrawMap(Map map, int _resolution)
+    */
+    public void DrawMap(Map map)
     {
-        resolution = _resolution;
         shouldExtraDraw = !shouldExtraDraw;
         
         
@@ -57,18 +57,20 @@ public class WorldDisplayer : MonoBehaviour
             DrawRegions(map.regions);
         }
 
+        /*
         if (mode == DisplayMode.KINGDOM)
         {
             DrawKingdoms(map.world.kingdoms);
             DrawRegions(map.regions);
             DrawKingdomsTags(map.world.kingdoms);
         }
-
+        */
         
         debugText.text = "Regions : " + map.regions.Count + "\n" +
             "Kingdoms : " + map.world.kingdoms.Count;
 
     }
+    /*
 
     void DrawKingdomsTags(List<Kingdom> kingdoms)
     {
@@ -133,6 +135,7 @@ public class WorldDisplayer : MonoBehaviour
                     }
                 }
                 */
+                /*
             }
         }
 
@@ -154,25 +157,23 @@ public class WorldDisplayer : MonoBehaviour
         tex.Apply();
     }
 
-
+        */
     void DrawRegion(Region region)
     {
 
-        var allowedEdges = region.GetFrontiers(); 
+        var allowedEdges = region.GetFrontiers();
+        var r = GetComponent<RectTransform>().rect;
         // Frontiers
         foreach (Site site in region.sites)
         {
-            var img = GetSiteImage(site, regionsLayer.transform);
-            Texture2D tex = (Texture2D)img.mainTexture;
-            
-            DrawSite(tex, site, Color.white,  1f, 2f, allowedEdges.innerEdges);
-
-            tex.Apply();
-            //((Texture2D)(image.mainTexture)).Apply();
+            var img = GetSiteObject(site, regionsLayer.transform);
+            var spr = img.GetComponent<Image>().sprite;
+            DrawSite(spr, site, Color.white);
+            img.GetComponent<RectTransform>().anchoredPosition = ToVector2(site.Coord) * new Vector2(r.width, r.height) - new Vector2(r.width/2, r.height/2);
         }
     }
 
-
+    /*
     TextMeshProUGUI GetSiteTag(Site site)
     {
         float factor = (scaleFactor / resolution);
@@ -187,9 +188,34 @@ public class WorldDisplayer : MonoBehaviour
 
         return sitesTags[site];
     }
-
-    RawImage GetSiteImage(Site site, Transform parent=null)
+    */
+    GameObject GetSiteObject(Site site, Transform parent)
     {
+        if (sitesGameObjects.ContainsKey(site)) {
+            return sitesGameObjects[site];
+        }
+        else {
+            var gameO = new GameObject();
+            gameO.transform.parent = parent;
+            var sr = gameO.AddComponent<Image>(); // add a sprite renderer
+            var texture = new Texture2D(regionResolution+1, regionResolution+1); // create a texture larger than your maximum polygon size
+            var color = new Color(0f, 1f, 0f, 1f);
+                                                                                       
+            List<Color> cols = new List<Color>();// create an array and fill the texture with your color
+            for (int i = 0; i < (texture.width * texture.height); i++)
+                cols.Add(color);
+            texture.SetPixels(cols.ToArray());
+            texture.Apply();
+
+            sr.color = color; //you can also add that color to the sprite renderer
+
+            sr.sprite = Sprite.Create(texture, new Rect(0, 0, regionResolution, regionResolution), Vector2.zero, 1); //create a sprite with the texture we just created and colored in
+
+            return gameO;
+        }
+
+
+        /*
         Texture2D tex;
 
         // 1) Trapping the site in a square
@@ -238,7 +264,6 @@ public class WorldDisplayer : MonoBehaviour
             tex = new Texture2D(Mathf.RoundToInt(square[1].x - square[0].x), Mathf.RoundToInt(square[1].y - square[0].y), TextureFormat.RGBA32, true);
             tex.mipMapBias = 0f;
             tex.filterMode = FilterMode.Point;
-            FillRectangle(new Vector2[] { new Vector2(0, 0), new Vector2(tex.width, tex.height) }, tex, new Color(0, 0, 0, 0));
             tex.Apply();
         }
         else
@@ -250,8 +275,9 @@ public class WorldDisplayer : MonoBehaviour
         ri.texture = tex;
 
         return ri;
+        */
     }
-
+    /*
     // Filling by tracing rays to the center
     void FillSite(Color c, Site site)
     {
@@ -285,18 +311,8 @@ public class WorldDisplayer : MonoBehaviour
 
         tex.Apply();
 
-    }
-
-    static void FillRectangle(Vector2[] square, Texture2D tx, Color c)
-    {
-
-        for (float i = square[0].y; i < square[1].y; i++)
-        {
-            DrawLine(new Vector2f(square[0].x, Mathf.RoundToInt(i)), new Vector2f(square[1].x, Mathf.RoundToInt(i)), tx, c);
-        }
-    }
-    
-
+    }    
+    */
     void DrawRegions(List<Region> regions)
     {
         //List<Edge> drawnEdges = new List<Edge>();
@@ -321,20 +337,74 @@ public class WorldDisplayer : MonoBehaviour
         regionsLayer.transform.SetSiblingIndex(regionsLayer.transform.parent.childCount - 1);
     }
 
+    public static Vector2 ToVector2(Vector2f f)
+    {
+        return new Vector2(f.x, f.y);
+    }
 
     // Outlines the site
-    void DrawSite(Texture2D tex, Site site, Color c, float factor=1f, float brushSize=1f, List<Edge> ignoreEdges=null)
+    void DrawSite(Sprite sprite, Site site, Color c, float scale=1f)
     {
+        // generate vertices list
+        List<Vector2> points = new List<Vector2>();
+
+        /*
+        foreach(Edge edge in site.Edges) {
+            if (edge.ClippedEnds == null) continue;
+            var left = edge.ClippedEnds[LR.LEFT];
+            var right = edge.ClippedEnds[LR.RIGHT];
+            site.
+            points.Add(ToVector2(left));
+            points.Add(ToVector2(right));
+        }
+        */
+
+        List<ushort> triangles = new List<ushort>();
+        for (int i = 1; i < points.Count - 1; i++) {
+            triangles.Add(0);
+            triangles.Add((ushort)(i));
+            triangles.Add((ushort)(i + 1));
+        }
+        triangles.Add(0);
+        triangles.Add((ushort)(points.Count - 1));
+        triangles.Add((ushort)(1));
+
+        points = new List<Vector2>() { new Vector2(1, 1), new Vector2(.05f, 3.3f), new Vector2(1, 2), new Vector2(1.95f, 1.3f), new Vector2(1.58f, 0.2f), new Vector2(.4f, .2f) };
+
+
+        //convert coordinates to local space
+
+        Vector2[] localv = new Vector2[points.Count];
+        for (int i = 0; i < points.Count; i++) {
+            localv[i] = points[i] - ToVector2(site.Coord) + new Vector2(regionResolution / 2, regionResolution / 2);
+            localv[i] /= scale;
+        }
+
+        var stringData = "";
+        foreach(var point in points) {
+            stringData += point+"\n";
+        }
+        stringData += "-----\n";
+        foreach (var s in triangles) {
+            stringData += s + "\n";
+        }
+        sprite.name = stringData;
+        sprite.OverrideGeometry(localv, triangles.ToArray()); // set the vertices and triangles        
+
+        /*
+        RectTransform rt = siteO.GetComponent<RectTransform>();
+        rt.anchoredPosition = new Vector2(site.Coord.x * factor, site.Coord.y * factor);
+        */
+        /*
         Vector2[] square =
             new Vector2[2] {
                 new Vector2(siteTextureMargin, siteTextureMargin), //-X -Y
                 new Vector2(tex.width-siteTextureMargin, tex.height-siteTextureMargin) // X Y
             };
-        
+
         var center = Vector2.Lerp(square[0], square[1], 0.5f);
 
-        foreach (Edge edge in site.Edges)
-        {
+        foreach (Edge edge in site.Edges) {
             if (edge.ClippedEnds == null) continue;
             if (ignoreEdges != null && ignoreEdges.Contains(edge)) continue;
 
@@ -347,153 +417,8 @@ public class WorldDisplayer : MonoBehaviour
 
             DrawLine(left + new Vector2f(center.x, center.y), right + new Vector2f(center.x, center.y), tex, c, brushSize);
         }
-
-    }
-
-
-        /*
-    void DrawEdge(Edge edge, Texture2D tx, Color c, bool isDotted=false, float dotWeight=1f)
-    {
-        // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
-        if (edge.ClippedEnds == null) return;
-        float weight = brushSize;
-        if (isDotted)
-        {
-            weight = dotWeight;
-        }
-        DrawJitteredLine(edge.ClippedEnds[LR.LEFT], edge.ClippedEnds[LR.RIGHT], tx, c, weight, isDotted);
-    }
-
-    void DrawJitteredLine(Vector2f p0, Vector2f p1, Texture2D tx, Color c, float brushSize, bool isDotted=false)
-    {
-        bool dot = false;
-        var jittered = JitterLine(p0, p1, jitterCutEvery, jitterForce);
-
-        if (isDotted)
-        {// Straight
-            jittered = JitterLine(p0, p1, jitterCutEvery/4f, 0);
-        }
-
-        foreach (KeyValuePair<Vector2f, Vector2f> line in jittered)
-        {
-            dot = !dot;
-            if (!isDotted || dot) { 
-                DrawLine(line.Key, line.Value, tx, c, brushSize);
-            }
-        }
-    }
-
-    */
-    // Bresenham line algorithm
-    static void DrawLine(Vector2f p0, Vector2f p1, Texture2D tx, Color c, float brushSize=1f)
-    {
-        var pixels = GetPixelsOnLine(p0, p1);
-
-        foreach (Vector2f px in pixels)
-        {
-            if (brushSize > 0)
-            {
-                DrawCircle(new Vector2f(px.x, px.y), tx, c, brushSize / 2);
-            }
-            else
-            {
-                tx.SetPixel(Mathf.RoundToInt(px.x), Mathf.RoundToInt(px.y), c);
-            }
-        }
-    }
-
-    static List<Vector2f> GetPixelsOnLine(Vector2f p0, Vector2f p1)
-    {
-        List<Vector2f> pixels = new List<Vector2f>();
-
-        int x0 = (int)p0.x;
-        int y0 = (int)p0.y;
-        int x1 = (int)p1.x;
-        int y1 = (int)p1.y;
-
-        int dx = Mathf.Abs(x1 - x0);
-        int dy = Mathf.Abs(y1 - y0);
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
-        int err = dx - dy;
-
-        while (true)
-        {
-            pixels.Add(new Vector2f(x0, y0));
-
-            if (x0 == x1 && y0 == y1) break;
-            int e2 = 2 * err;
-            if (e2 > -dy)
-            {
-                err -= dy;
-                x0 += sx;
-            }
-            if (e2 < dx)
-            {
-                err += dx;
-                y0 += sy;
-            }
-        }
-
-        return pixels;
-    }
-
-    static void DrawCircle(Vector2f p0, Texture2D tx, Color c, float r=1f)
-    {
-        int radius = Mathf.RoundToInt(r);
-        for (int y = -radius; y <= radius; y++)
-            for (int x = -radius; x <= radius; x++)
-                if (x * x + y * y <= radius * radius)
-                    tx.SetPixel(Mathf.RoundToInt(p0.x + x), Mathf.RoundToInt(p0.y + y), c);
-        
-    }
+        */
 
 
-    static List<KeyValuePair<Vector2f, Vector2f>> JitterLine(Vector2f origin, Vector2f destination, float jitterCutEvery, float jitterForce)
-    {
-        System.Random localRandom = new System.Random(1);
-
-        var segments = new List<KeyValuePair<Vector2f, Vector2f>>();
-        var segmentAmount = Mathf.CeilToInt(Vector2f.DistanceSquare(origin, destination)/ jitterCutEvery);
-
-        List<Vector2> newPositions = new List<Vector2>();
-
-        // Breaking down into multiple points
-        for (int i = 0; i < segmentAmount + 1; i++)
-        {
-            Vector2 point =
-                Vector2.Lerp(
-                    new Vector2(origin.x, origin.y),
-                    new Vector2(destination.x, destination.y),
-                    ((float)i) / segmentAmount
-                );
-
-            newPositions.Add(point);
-        }
-
-        // Recomposing segments - but with jitter
-        Vector2 lastPosition = new Vector2();
-        bool isFirstLoop = true;
-        foreach (Vector2 position in newPositions)
-        {
-            if (isFirstLoop)
-            {
-                lastPosition = new Vector2(origin.x, origin.y);
-                isFirstLoop = false;
-                continue;
-            }
-
-            Vector2 newPosition = position;
-
-            newPosition += new Vector2((float)localRandom.NextDouble() * 2f - 1, (float)localRandom.NextDouble() * 2f - 1) * jitterForce;
-            
-            segments.Add(new KeyValuePair<Vector2f, Vector2f>(
-                new Vector2f(lastPosition.x, lastPosition.y),
-                new Vector2f(newPosition.x, newPosition.y)
-            ));
-            lastPosition = newPosition;
-        }
-
-        return segments;
     }
 }

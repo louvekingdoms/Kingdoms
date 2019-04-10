@@ -12,7 +12,7 @@ public class WorldGenerator : MonoBehaviour
     public float refreshRate = 1f;
     public int seed = 1;
 
-    public WorldDisplayer displayer;
+    public WorldDisplayer2 displayer;
 
     private void Awake()
     {
@@ -47,7 +47,7 @@ public class WorldGenerator : MonoBehaviour
     IEnumerator RefreshDiagram()
     {
 
-        displayer.DrawMap(world.map, Mathf.RoundToInt(parameters.resolution));
+        displayer.DrawMap(world.map);
 
         yield return new WaitForSeconds(refreshRate);
 
