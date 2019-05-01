@@ -7,22 +7,18 @@ using csDelaunay;
 public class WorldDisplayer2 : MonoBehaviour
 {
     public GameObject regionsLayer;
-    public int regionResolution = 256;
+    [Range(0f, 1024f)] public int regionDPI = 1024;
     public DisplayMode mode;
-    [Range(0f, 10f)] public float mapSize = 10f;
-
+    [Range(0f, 100f)] public float mapSize = 10f;
+    [Range(0f, 1000f)] public float regionScale = 1f;
+    public Material strokeMaterial;
     public enum DisplayMode { REGION, TERRITORY, KINGDOM };
 
-    float regionScale = 0f;
 
-    Dictionary<Site, GameObject> sitesFills = new Dictionary<Site, GameObject>();
-    Dictionary<Site, GameObject> sitesStrokes = new Dictionary<Site, GameObject>();
+    Dictionary<Site, GameObject> sitesGameObjects = new Dictionary<Site, GameObject>();
 
     public void DrawMap(Map map)
     {
-
-        regionScale = 10f - mapSize;
-
 
 
         // Regions
@@ -46,7 +42,9 @@ public class WorldDisplayer2 : MonoBehaviour
         {
             foreach (var site in region.sites)
             {
-                FillSite(site, Color.black);
+                FillSite(site, Color.red);
+
+                StrokeSite(site, Color.blue);
             }
         }
     }
@@ -66,33 +64,51 @@ public class WorldDisplayer2 : MonoBehaviour
 
     void StrokeSite(Site site, Color color, float scale = 1f)
     {
+        var position = ToVector2(site.Coord);
+        var g = GetSiteObject(site, regionsLayer.transform);
+        var image = g.GetComponent<Image>();
+
+       // g.GetComponent<Renderer>().material = strokeMaterial;
 
     }
 
     void FillSite(Site site, Color color, float scale=1f)
     {
-        // generate vertices list
-        List<Vector2> points = new List<Vector2>();
-
-        foreach (Edge edge in site.Edges)
-        {
-            if (edge.ClippedEnds == null) continue;
-            var left = ToVector2(edge.ClippedEnds[LR.LEFT]);
-            var right = ToVector2(edge.ClippedEnds[LR.RIGHT]);
-
-            points.Add(left * regionScale * scale);
-            points.Add(right * regionScale * scale);
-        }
+        var g = GetSiteObject(site, regionsLayer.transform);
 
         var position = ToVector2(site.Coord);
-        var g = GetSiteObject(site, regionsLayer.transform);
+        /*
         var spriteRenderer = g.GetComponent<SpriteRenderer>();
         var spr = spriteRenderer.sprite;
         
         spriteRenderer.color = color;
+        */
+        var image = g.GetComponent<RawImage>();
+        //var spr = image.sprite;
+        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x;
 
-        ShapeSprite(points, position, spr);
-        g.transform.localPosition = (position) * mapSize - new Vector2(regionScale / 2, regionScale / 2) - new Vector2(mapSize / 2, mapSize / 2); // return to world space
+        //ShapeSprite(points, position, spr);
+        //g.transform.localPosition = (position) * mapSize - new Vector2(regionScale / 2, regionScale / 2) - new Vector2(mapSize / 2, mapSize / 2); // return to world space
+
+        var dim = SiteDimensions(site);
+        var bounds = SiteBounds(site);
+
+        var tex = ((Texture2D)image.mainTexture);
+        tex.SetPencilColor(Color.yellow);
+        tex.Circle(new Vector2(0.5f, 0.5f), 1f);
+
+        tex.SetPencilColor(Color.white);
+        var UVs = new List<Vector2>();
+        foreach(var point in site.Points()) {
+            UVs.Add((point - bounds[0]) / dim);
+        }
+        tex.Polygon(UVs, 3f);
+        tex.Apply();
+        
+        // Set position and size
+        var rect = g.GetComponent<RectTransform>();
+        rect.anchoredPosition = position*size-new Vector2(size/2, size/2);
+        rect.sizeDelta = (dim)* regionScale;
     }
 
     void ShapeSprite(List<Vector2> points, Vector2 position, Sprite sprite)
@@ -126,9 +142,11 @@ public class WorldDisplayer2 : MonoBehaviour
 
         var gameO = new GameObject();
         gameO.transform.parent = parent;
-        var sr = gameO.AddComponent<SpriteRenderer>(); // add a sprite renderer
-        var texture = new Texture2D(regionResolution + 1, regionResolution + 1); // create a texture larger than your maximum polygon size
-        var color = new Color(1f, 1f, 1f, 1f);
+        var image = gameO.AddComponent<RawImage>(); // add a sprite renderer
+        var dim = SiteDimensions(site);
+
+        var texture = new Texture2D(Mathf.RoundToInt(regionDPI * dim.x) + 1, Mathf.RoundToInt(regionDPI * dim.y + 1), TextureFormat.ARGB32, false, false); // create a texture larger than your maximum polygon size
+        var color = new Color(0f, 0f, 0f, 0f);
 
         // Fill with color
         List<Color> cols = new List<Color>();// create an array and fill the texture with your color
@@ -137,11 +155,36 @@ public class WorldDisplayer2 : MonoBehaviour
         texture.SetPixels(cols.ToArray());
         texture.Apply();
 
-        sr.sprite = Sprite.Create(texture, new Rect(0, 0, regionResolution, regionResolution), Vector2.zero, 1); //create a sprite with the texture we just created and colored in
+        //image.sprite = Sprite.Create(texture, new Rect(0, 0, regionResolution, regionResolution), Vector2.zero, 1); //create a sprite with the texture we just created and colored in
+        image.texture = texture;
 
         sitesGameObjects[site] = gameO;
 
         return gameO;
 
+    }
+
+    Vector2 SiteDimensions(Site site)
+    {
+        var bounds = SiteBounds(site);
+        var dim = bounds[1] - bounds[0];
+        return dim;
+    }
+
+    Vector2[] SiteBounds(Site site)
+    {
+        var lowest = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        var highest = new Vector2(Mathf.NegativeInfinity, Mathf.NegativeInfinity);
+
+        foreach (var point in site.Points()) {
+            if (lowest.x > point.x) lowest.x = point.x;
+            if (lowest.y > point.y) lowest.y = point.y;
+            if (highest.x < point.x) highest.x = point.x;
+            if (highest.y < point.y) highest.y = point.y;
+            //print("site:" + site.GetHashCode() + " => added point " + point);
+            //print("site:" + site.GetHashCode() + " => range "+ lowest + "/"+highest);
+        }
+
+        return new Vector2[] { lowest, highest };
     }
 }

@@ -336,8 +336,28 @@ namespace csDelaunay {
 
 		public float Dist(ICoord p) {
 			return (this.Coord - p.Coord).magnitude;
-		}
-	}
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        // CUSTOM
+
+        public List<UnityEngine.Vector2> Points()
+        {
+            // generate vertices list
+            var points = new List<UnityEngine.Vector2>();
+
+            foreach (Edge edge in edges) {
+                if (edge.ClippedEnds == null) continue;
+                if (points.Count == 0) {
+                    points.Add(WorldDisplayer2.ToVector2(edge.ClippedEnds[LR.RIGHT]));
+                }
+                var left = WorldDisplayer2.ToVector2(edge.ClippedEnds[LR.LEFT]);
+                points.Add(left);
+            }
+
+            return points;
+        }
+    }
 
 	public class BoundsCheck {
 		public const int TOP = 1;
@@ -368,5 +388,5 @@ namespace csDelaunay {
 
 			return value;
 		}
-	}
+    }
 }
