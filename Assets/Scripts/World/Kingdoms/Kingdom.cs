@@ -12,8 +12,9 @@ public class Kingdom
     public string name;
     public Color color;
     public int population;
+    public Ruler ruler;
 
-    public Kingdom(string _name, List<Region> _territory, Race _mainRace)
+    public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler)
     {
         TakeOwnership(_territory);
         SetName(_name);

@@ -56,5 +56,19 @@ public class Library
             Debug.LogError("ERROR WHILE LOADING RACE NAMES : " + raceFolderName + "\n\n" + e.ToString());
             throw;
         }
+
+        //
+        //  CREATION RULES
+        //
+        try
+        {
+            var creationRules = new List<string>(File.ReadAllLines(Paths.RaceRulerCreationRules(raceFolderName)));
+            race.kingdomsNames = kingdoms;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("ERROR WHILE LOADING RACE RULER CREATION RULES : " + raceFolderName + "\n\n" + e.ToString());
+            throw;
+        }
     }
 }
