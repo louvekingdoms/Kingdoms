@@ -16,20 +16,36 @@ public class WorldGenerator : MonoBehaviour
 
     private void Awake()
     {
-        Library.Load();
+        Library.Initialize();
+        Ruleset rules = new Ruleset();
+        Rules.LoadRuleset(rules);
     }
 
     void Start()
     {
-
-        Ruleset rules = new Ruleset();
-        Rules.LoadRuleset(rules);
 
         world = new World(seed);
 
         world.map.Generate(parameters, world);
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
 
+        /*
+         * narration!
+         * 
+        Logger.Debug("Shortly after the fall of the Great Empire, a number of kingdoms arised from the ashes.");
+        Logger.Debug("Among them, were...");
+        foreach (var kingdom in world.kingdoms)
+        {
+            Logger.Debug(
+                "- The kingdom of " + 
+                kingdom.name + ", counting " + 
+                kingdom.GetPopulation() + " "+
+                kingdom.GetMainRace().name+" souls, led by the migthy " + 
+                kingdom.ruler.name + 
+            "");
+        }
+        Logger.Debug("And the great war was about to start.");
+        */
         StartCoroutine(RefreshDiagram());
     }
 
@@ -47,7 +63,7 @@ public class WorldGenerator : MonoBehaviour
     IEnumerator RefreshDiagram()
     {
 
-        displayer.DrawMap(world.map, Mathf.RoundToInt(parameters.resolution));
+        //displayer.DrawMap(world.map, Mathf.RoundToInt(parameters.resolution));
 
         yield return new WaitForSeconds(refreshRate);
 

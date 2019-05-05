@@ -7,7 +7,19 @@ public class Library
 {
     static public Dictionary<int, Race> races = new Dictionary<int, Race>();
 
-    static public void Load()
+    static public void Initialize()
+    {
+        Logger.Info("Initializing library");
+        Clear();
+        Load();
+    }
+
+    static void Clear()
+    {
+        races.Clear();
+    }
+
+    static void Load()
     {
         LoadRaces();
     }
