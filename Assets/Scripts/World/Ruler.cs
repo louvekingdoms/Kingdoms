@@ -1,16 +1,49 @@
 ﻿using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Ruler
 {
-    string name;
-    Race race;
+    public readonly string name;
+    public readonly Race race;
     Characteristics characteristics;
+    int age = 20;
+    int birthDate = 1;
+
+    public Ruler(string _name, Race _race, int _birthDate=0, int _age=0) : this()
+    {
+        birthDate = _birthDate > 0 ? _birthDate : birthDate;
+        age = _age > 0 ? _age : age;
+        race = _race;
+        name = _name;
+    }
+
+    public Ruler()
+    {
+        race = Library.races[Library.races.Keys.ToArray()[Random.Range(0, Library.races.Keys.Count - 1)]];
+        name = race.GetRandomRulerName();
+
+        birthDate = Random.Range(1, Rules.set[RULE.YEAR_LENGTH].GetInt());
+        age = Random.Range(
+            race.rulerCreationRules.majority,
+            Mathf.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)
+        );
+
+        characteristics = new Characteristics();
+    }
     
+
+    public int GetAge()
+    {
+        return age;
+    }
+
     public class CreationRules
     {
         public CharacteristicDefinitions characteristicDefinitions;
+        public int maximumLifespan = 60;
+        public int majority = 16;
     }
 
     // Varying characteristic
@@ -22,7 +55,7 @@ public class Ruler
         public Characteristic(CharacteristicDefinition _definition)
         {
             definition = _definition;
-            value = definition.start;
+            value = definition.min;
         }
     }
 
@@ -31,7 +64,6 @@ public class Ruler
     {
         public int min = 1;
         public int max = 10;
-        public int start = 1;
         public int cost = 1;
         public Rules rules;
 

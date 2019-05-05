@@ -11,7 +11,6 @@ public class Kingdom
     public int mainland;
     public string name;
     public Color color;
-    public int population;
     public Ruler ruler;
 
     public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler)
@@ -20,7 +19,7 @@ public class Kingdom
         SetName(_name);
         mainland = 0;
         mainRace = _mainRace;
-        population = Rules.set[RULE.STARTING_POPULATION_PER_REGION].GetInt() * _territory.Count;
+        ruler = _ruler;
     }
 
     ///////////////////////////////////
@@ -110,6 +109,22 @@ public class Kingdom
     public Color GetColor()
     {
         return color;
+    }
+
+    public Race GetMainRace()
+    {
+        return mainRace;
+    }
+
+    public int GetPopulation()
+    {
+        int total = 0;
+        foreach(var region in territory)
+        {
+            total += region.population;
+        }
+
+        return total;
     }
 
     public void SetName(string _name)

@@ -46,7 +46,9 @@ public static class Interpreter
         {
             if (chr == relationMarker)
             {
-                return new Relation(chunk.Substring(0, index - 1), chunk.Substring(index + 1, chunk.Length));
+                var key = chunk.Substring(0, index - 1);
+                var content = chunk.Substring(index + 1, chunk.Length-(index+1));
+                return new Relation(key, content);
             }
 
             index++;
@@ -153,6 +155,11 @@ public static class Interpreter
                     x.rulerCharacteristics[characteristic].value -= x.change;
                 }
             }
+        },
+        {
+            "FREEZE",(CharacteristicDefinitionRuleParameters x) => {
+                x.concernedCharacteristic.value -= x.change;
+            }
         }
     };
 
@@ -203,7 +210,6 @@ public static class Interpreter
             switch (relation.key.ToUpper()) {
                 case "MIN": def.min = Convert.ToInt32(relation.content); break;
                 case "MAX": def.max = Convert.ToInt32(relation.content); break;
-                case "START": def.start = Convert.ToInt32(relation.content); break;
                 case "COST": def.cost = Convert.ToInt32(relation.content); break;
                 case "RULES": def.rules = ReadCharacteristicDefinitionRules(relation.content, charName); break;
             }

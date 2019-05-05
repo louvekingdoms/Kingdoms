@@ -15,11 +15,13 @@ public class Race
     
 
     public readonly int id = 0;
+
     public string name = "Default";
     public string adjective = "of {0}";
     public Ruler.CreationRules rulerCreationRules;
 
-    public List<string> kingdomsNames = new List<string>() { "DefaultKingdom" };
+    public List<string> kingdomNames = new List<string>() { "DefaultKingdom" };
+    public List<string> rulerNames = new List<string>() { "DefaultRuler" };
 
     public Race(int _id, string _name, string _adjective)
     {
@@ -38,6 +40,11 @@ public class Race
 
     public string GetRandomKingdomName()
     {
-        return kingdomsNames[Random.Range(0, kingdomsNames.Count)];
+        return kingdomNames[Random.Range(0, kingdomNames.Count)];
+    }
+
+    public string GetRandomRulerName()
+    {
+        return rulerNames[Random.Range(0, rulerNames.Count)];
     }
 }

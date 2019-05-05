@@ -5,6 +5,9 @@ CHARACTERISTICS:[
     administration: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
     charisma: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
     luck: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
-    arrogance: [MAX:100, RULES:FROZEN()],
+    arrogance: [MAX:100, RULES: [ON_CHANGE: FREEZE()]],
     wisdom: [RULES: [ON_CHANGE: REVERSE_MAP(CHAR:arrogance)]
+],
+DEFINITION:[
+    BASE_LIFESPAN:60
 ]

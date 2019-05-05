@@ -10,6 +10,7 @@ public class Region
     public int capital;
     public Map map { get; }
     public Kingdom owner = null;
+    public int population;
 
     public float elevation = 0f;
     public float moisture = 0f;
@@ -19,6 +20,7 @@ public class Region
         sites = _sites;
         capital = _capital;
         map = _map;
+        population = Rules.set[RULE.STARTING_POPULATION_PER_REGION].GetInt();
     }
 
     public class Frontiers

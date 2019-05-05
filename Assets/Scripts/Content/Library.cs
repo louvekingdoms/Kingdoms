@@ -32,7 +32,7 @@ public class Library
         ///
         try
         {
-            var meta = JsonUtility.FromJson(File.ReadAllText(Paths.RaceMetafile(raceFolderName)), typeof(Race.Info)) as Race.Info;
+            var meta = JsonUtility.FromJson(Disk.ReadAllText(Paths.RaceMetafile(raceFolderName)), typeof(Race.Info)) as Race.Info;
             race = new Race(meta.id, meta.name, meta.adjective);
             races.Add(race.id, race);
         }
@@ -48,8 +48,8 @@ public class Library
         ///
         try
         {
-            var kingdoms = new List<string>(File.ReadAllLines(Paths.RaceKingdomsNames(raceFolderName)));
-            race.kingdomsNames = kingdoms;
+            race.kingdomNames = new List<string>(Disk.ReadAllLines(Paths.RaceKingdomNames(raceFolderName)));
+            race.rulerNames = new List<string>(Disk.ReadAllLines(Paths.RaceRulerNames(raceFolderName)));
         }
         catch(System.Exception e)
         {
@@ -62,7 +62,7 @@ public class Library
         //
         try
         {
-            var creationRules = File.ReadAllText(Paths.RaceRulerCreationRules(raceFolderName));
+            var creationRules = Disk.ReadAllText(Paths.RaceRulerCreationRules(raceFolderName));
             race.rulerCreationRules = Interpreter.ReadRulerCreationRules(creationRules);
         }
         catch (System.Exception e)

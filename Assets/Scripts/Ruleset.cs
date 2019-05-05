@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum RULE { STARTING_KINGDOMS, MAX_STARTING_KINGDOM_STRENGTH, STARTING_POPULATION_PER_REGION};
+public enum RULE { STARTING_KINGDOMS, MAX_STARTING_KINGDOM_STRENGTH, STARTING_POPULATION_PER_REGION, YEAR_LENGTH, LIFESPAN_MULTIPLIER };
 
 public interface IRuleValue
 {
@@ -54,9 +54,11 @@ public class RuleBool : IRuleValue
 public class Ruleset : Dictionary<RULE, IRuleValue> {
     public Ruleset()
     {
-        this.Add(RULE.STARTING_KINGDOMS, new RuleInt(1));
+        this.Add(RULE.STARTING_KINGDOMS, new RuleInt(10));
         this.Add(RULE.MAX_STARTING_KINGDOM_STRENGTH, new RuleInt(5));
         this.Add(RULE.STARTING_POPULATION_PER_REGION, new RuleInt(200));
+        this.Add(RULE.YEAR_LENGTH, new RuleInt(365));
+        this.Add(RULE.LIFESPAN_MULTIPLIER, new RuleFloat(1));
     }
 
 }
