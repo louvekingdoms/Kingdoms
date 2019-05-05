@@ -30,20 +30,21 @@ public class Ruler
     public class CharacteristicDefinition
     {
         public int min = 1;
-        public int max = 5;
+        public int max = 10;
         public int start = 1;
         public int cost = 1;
+        public Rules rules;
 
-        public class Rule
+        public class Rules
         {
-            public System.Action<Characteristics> onOverflow;
-            public System.Action<Characteristics> onIncrement;
-            public System.Action<Characteristics> onDecrement;
+            // <current characteristics, concerned chara, amount of change>
+            public System.Action<Characteristics, int> onChange;
+            public bool isFrozen = false;   // The player cannot change this variable value
         }
     }
 
     // static set of varying characteristics
-    public class Characteristics : List<Characteristic> { }
+    public class Characteristics : Dictionary<string, Characteristic> { }
 
     // static definitions set
     public class CharacteristicDefinitions : Dictionary<string, CharacteristicDefinition> { }

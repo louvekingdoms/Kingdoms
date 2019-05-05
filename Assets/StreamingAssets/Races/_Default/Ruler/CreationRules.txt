@@ -1,10 +1,10 @@
 CHARACTERISTICS:[
-    command: [RULES:[ON_OVERFLOW: INCREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]],
-    martial: [RULES:[ON_OVERFLOW: INCREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]],
-    diplomacy: [RULES:[ON_OVERFLOW: INCREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]],
-    administration: [RULES:[ON_OVERFLOW: INCREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]],
-    charisma: [RULES:[ON_OVERFLOW: INCREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]],
-    luck: [RULES:[ON_OVERFLOW: INCREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]],
-    arrogance: [MIN:0, MAX:NONE, START:0],
-    wisdom: [MIN:0, START:0, COST:2, RULES[ON_INCREMENT: DECREASE_RULER_CHARACTERISTIC(CHAR:arrogance)]
+    command: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    martial: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    diplomacy: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    administration: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    charisma: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    luck: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    arrogance: [MAX:100, RULES:FROZEN()],
+    wisdom: [RULES: [ON_CHANGE: REVERSE_MAP(CHAR:arrogance)]
 ]

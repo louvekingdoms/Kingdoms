@@ -17,7 +17,7 @@ public class Race
     public readonly int id = 0;
     public string name = "Default";
     public string adjective = "of {0}";
-    public Ruler.CharacteristicDefinitions rulerCreationRules;
+    public Ruler.CreationRules rulerCreationRules;
 
     public List<string> kingdomsNames = new List<string>() { "DefaultKingdom" };
 
@@ -28,7 +28,7 @@ public class Race
         adjective = _adjective;
     }
 
-    public Race(int _id, string _name, string _adjective, Ruler.CharacteristicDefinitions _rulerCreationRules)
+    public Race(int _id, string _name, string _adjective, Ruler.CreationRules _rulerCreationRules)
     {
         id = _id;
         name = _name;

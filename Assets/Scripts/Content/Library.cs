@@ -62,8 +62,8 @@ public class Library
         //
         try
         {
-            var creationRules = new List<string>(File.ReadAllLines(Paths.RaceRulerCreationRules(raceFolderName)));
-            race.kingdomsNames = kingdoms;
+            var creationRules = File.ReadAllText(Paths.RaceRulerCreationRules(raceFolderName));
+            race.rulerCreationRules = Interpreter.ReadRulerCreationRules(creationRules);
         }
         catch (System.Exception e)
         {
