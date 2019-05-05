@@ -7,9 +7,10 @@ public class Ruler
 {
     public readonly string name;
     public readonly Race race;
-    Characteristics characteristics;
+    public Characteristics characteristics;
     int age = 20;
     int birthDate = 1;
+    float health = 100f;
 
     public Ruler(string _name, Race _race, int _birthDate=0, int _age=0) : this()
     {
@@ -17,6 +18,7 @@ public class Ruler
         age = _age > 0 ? _age : age;
         race = _race;
         name = _name;
+        LoadCharacteristicsDefinitions();
     }
 
     public Ruler()
@@ -30,9 +32,18 @@ public class Ruler
             Mathf.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)
         );
 
-        characteristics = new Characteristics();
+        LoadCharacteristicsDefinitions();
     }
     
+    void LoadCharacteristicsDefinitions()
+    {
+        characteristics = new Characteristics();
+
+        foreach(var def in race.rulerCreationRules.characteristicDefinitions.Keys)
+        {
+            characteristics.Add(def, new Characteristic(race.rulerCreationRules.characteristicDefinitions[def]));
+        }
+    }
 
     public int GetAge()
     {
