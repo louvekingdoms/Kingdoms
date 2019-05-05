@@ -14,6 +14,7 @@ public static class Interpreter
     #endregion
 
     #region UTILITIES
+    class UnsolvedDepthException : Exception { public UnsolvedDepthException(string message) : base(message) { } };
     class InvalidRelationException : Exception { public InvalidRelationException(string message) : base(message) { } };
     class UnknownFunctionException : Exception { public UnknownFunctionException(string message, IEnumerable cmdList) : base(message+"\nAvailable functions:"+ string.Join("\n", cmdList)) { } };
     
@@ -46,7 +47,7 @@ public static class Interpreter
         {
             if (chr == relationMarker)
             {
-                var key = chunk.Substring(0, index - 1);
+                var key = chunk.Substring(0, index);
                 var content = chunk.Substring(index + 1, chunk.Length-(index+1));
                 return new Relation(key, content);
             }
@@ -72,41 +73,40 @@ public static class Interpreter
     static List<string> ExplodeChunk(this string chunk, char[][] skipSpaces)
     {
         List<string> chunks = new List<string>();
-        char expectedEndMarker = '@'; // Dummy
-        bool isWaitingForEndMarker = true;
+        List<char> expectedEndMarkers = new List<char>();
         string currentChunk = string.Empty;
 
-        foreach (char chr in chunk)
+        for (int i = 0; i < chunk.Length; i++)
         {
-
+            var chr = chunk[i];
             // Inside an ensemble...
-            if (isWaitingForEndMarker)
+            if (expectedEndMarkers.Count > 0) 
             {
                 // Found correct end marker
-                if (chr == expectedEndMarker)
+                if (chr == expectedEndMarkers[expectedEndMarkers.Count-1])
                 {
                     // Skipping the end marker and resuming read
-                    isWaitingForEndMarker = false;
-                    continue;
+                    expectedEndMarkers.RemoveAt(expectedEndMarkers.Count - 1);
                 }
             }
 
             // Detecting ensemble openings
-            bool shouldSkip = false;
             foreach (char[] markers in skipSpaces)
             {
                 // Stumbled on an opening marker for an ensemble or a function, we will now wait for the closing marker
                 if (chr == markers[0])
                 {
-                    expectedEndMarker = markers[1];
-                    isWaitingForEndMarker = true;
-                    shouldSkip = true;
+                    expectedEndMarkers.Add(markers[1]);
                 }
             }
-            if (shouldSkip) continue;
 
-            // If we got so far, we're at a correct depth
-            if (chr == separator && !isWaitingForEndMarker) {
+            // If we're at a correct depth
+            if ((i == chunk.Length-1 || chr == separator) && expectedEndMarkers.Count == 0) {
+                if (i == chunk.Length - 1)
+                {
+                    // EOF
+                    currentChunk += chr;
+                }
                 // Found separator, emptying chunk and adding it to the list
                 chunks.Add(currentChunk);
                 currentChunk = string.Empty;
@@ -117,6 +117,10 @@ public static class Interpreter
             currentChunk += chr;
         }
 
+        if (currentChunk.Length > 0)
+        {
+            throw new UnsolvedDepthException("Out of depth! Are you closing all your ensembles?\nExceeding data:\n" + currentChunk);
+        }
         return chunks;
     }
     #endregion
@@ -172,6 +176,7 @@ public static class Interpreter
         var rules = new Ruler.CreationRules();
         string chunk = Sanitize(creationRules);
         var chunks = ExplodeChunk(chunk, new char[][] { ensembleMarkers, functionMarkers });
+        
         foreach (var definition in chunks) {
             var relation = SeparateRelation(definition);
             switch (relation.key)
@@ -195,7 +200,6 @@ public static class Interpreter
             var relation = SeparateRelation(chunk);
             definitions.Add(relation.key, ReadCharacteristicDefinition(relation.content, relation.key));
         }
-
         return definitions;
     }
 
