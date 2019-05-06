@@ -42,9 +42,7 @@ public class WorldDisplayer2 : MonoBehaviour
         {
             foreach (var site in region.sites)
             {
-                FillSite(site, Color.red);
-
-                StrokeSite(site, Color.blue);
+                DrawSite(site, Color.red);
             }
         }
     }
@@ -62,33 +60,13 @@ public class WorldDisplayer2 : MonoBehaviour
         */
     }
 
-    void StrokeSite(Site site, Color color, float scale = 1f)
-    {
-        var position = ToVector2(site.Coord);
-        var g = GetSiteObject(site, regionsLayer.transform);
-        var image = g.GetComponent<Image>();
-
-       // g.GetComponent<Renderer>().material = strokeMaterial;
-
-    }
-
-    void FillSite(Site site, Color color, float scale=1f)
+    void DrawSite(Site site, Color color, float scale=1f)
     {
         var g = GetSiteObject(site, regionsLayer.transform);
 
         var position = ToVector2(site.Coord);
-        /*
-        var spriteRenderer = g.GetComponent<SpriteRenderer>();
-        var spr = spriteRenderer.sprite;
-        
-        spriteRenderer.color = color;
-        */
         var image = g.GetComponent<RawImage>();
-        //var spr = image.sprite;
         var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x;
-
-        //ShapeSprite(points, position, spr);
-        //g.transform.localPosition = (position) * mapSize - new Vector2(regionScale / 2, regionScale / 2) - new Vector2(mapSize / 2, mapSize / 2); // return to world space
 
         var dim = SiteDimensions(site);
         var bounds = SiteBounds(site);
@@ -97,7 +75,7 @@ public class WorldDisplayer2 : MonoBehaviour
         tex.SetPencilColor(Color.yellow);
         tex.Circle(new Vector2(0.5f, 0.5f), 1f);
 
-        tex.SetPencilColor(Color.white);
+        tex.SetPencilColor(color);
         var UVs = new List<Vector2>();
         foreach(var point in site.Points()) {
             UVs.Add((point - bounds[0]) / dim);
