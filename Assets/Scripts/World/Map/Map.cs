@@ -13,7 +13,7 @@ public class Map
     List<Edge> edges;
     System.Random r;
 
-    public enum Frontier { DESERT, PEAKS, OCEAN};
+    public enum Frontier { DESERT, PEAKS, OCEAN, EMPIRE};
 
     [System.Serializable]
     public class Parameters
