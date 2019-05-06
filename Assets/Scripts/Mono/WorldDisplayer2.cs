@@ -38,11 +38,11 @@ public class WorldDisplayer2 : MonoBehaviour
 
     void UpdateLayerTexture()
     {
-        Destroy(regionsLayer.texture);
+        if (regionsLayer.texture) Destroy(regionsLayer.texture);
 
-        var size = regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x+regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
         var sizei = Mathf.RoundToInt(size);
-
+        
         regionsLayer.texture = new Texture2D(sizei, sizei);
 
         //((Texture2D)regionsLayer.texture).
@@ -75,6 +75,22 @@ public class WorldDisplayer2 : MonoBehaviour
     void DrawSite(Site site, Color color, float scale=1f)
     {
         var position = ToVector2(site.Coord);
+
+        var tex = ((Texture2D)regionsLayer.mainTexture);
+
+        tex.SetPencilColor(color);
+
+        var UVs = new List<Vector2>();
+        foreach (var point in SitePoints(site)) {
+            UVs.Add((point));
+        }
+
+        tex.Polygon(UVs, 3f);
+
+        tex.Apply();
+
+
+        /*
         var image = g.GetComponent<RawImage>();
         var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x;
 
@@ -87,7 +103,7 @@ public class WorldDisplayer2 : MonoBehaviour
 
         tex.SetPencilColor(color);
         var UVs = new List<Vector2>();
-        foreach(var point in site.Points()) {
+        foreach(var point in SitePoints(site)) {
             UVs.Add((point - bounds[0]) / dim);
         }
         tex.Polygon(UVs, 3f);
@@ -97,6 +113,7 @@ public class WorldDisplayer2 : MonoBehaviour
         var rect = g.GetComponent<RectTransform>();
         rect.anchoredPosition = position*size-new Vector2(size/2, size/2);
         rect.sizeDelta = (dim)* regionScale;
+        */
     }
 
     void ShapeSprite(List<Vector2> points, Vector2 position, Sprite sprite)
@@ -121,37 +138,6 @@ public class WorldDisplayer2 : MonoBehaviour
         return new Vector2(f.x, f.y);
     }
     
-    // Pooling
-    GameObject GetSiteObject(Site site, Transform parent)
-    {
-        if (sitesGameObjects.ContainsKey(site)) {
-            return sitesGameObjects[site];
-        }
-
-        var gameO = new GameObject();
-        gameO.transform.parent = parent;
-        var image = gameO.AddComponent<RawImage>(); // add a sprite renderer
-        var dim = SiteDimensions(site);
-
-        var texture = new Texture2D(Mathf.RoundToInt(regionDPI * dim.x) + 1, Mathf.RoundToInt(regionDPI * dim.y + 1), TextureFormat.ARGB32, false, false); // create a texture larger than your maximum polygon size
-        var color = new Color(0f, 0f, 0f, 0f);
-
-        // Fill with color
-        List<Color> cols = new List<Color>();// create an array and fill the texture with your color
-        for (int i = 0; i < (texture.width * texture.height); i++)
-            cols.Add(color);
-        texture.SetPixels(cols.ToArray());
-        texture.Apply();
-
-        //image.sprite = Sprite.Create(texture, new Rect(0, 0, regionResolution, regionResolution), Vector2.zero, 1); //create a sprite with the texture we just created and colored in
-        image.texture = texture;
-
-        sitesGameObjects[site] = gameO;
-
-        return gameO;
-
-    }
-
     Vector2 SiteDimensions(Site site)
     {
         var bounds = SiteBounds(site);
@@ -184,6 +170,7 @@ public class WorldDisplayer2 : MonoBehaviour
         foreach (Edge edge in site.Edges) {
             if (edge.ClippedEnds == null) continue;
             if (points.Count == 0) {
+                //points.Add(ToVector2(edge.RightVertex.Coord));
                 points.Add(ToVector2(edge.ClippedEnds[LR.RIGHT]));
             }
             var left = ToVector2(edge.ClippedEnds[LR.LEFT]);
