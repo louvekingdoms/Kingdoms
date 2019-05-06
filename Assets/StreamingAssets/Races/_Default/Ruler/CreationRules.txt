@@ -1,0 +1,13 @@
+CHARACTERISTICS:[
+    command: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    martial: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    diplomacy: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    administration: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    charisma: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    luck: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
+    wisdom: [RULES: [ON_CHANGE: REVERSE_MAP(CHAR:arrogance)]],
+    arrogance: [MIN:0, MAX:100, RULES: [ON_CHANGE: FREEZE()]]
+],
+DEFINITION:[
+    BASE_LIFESPAN:60
+]
