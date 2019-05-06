@@ -6,7 +6,7 @@ using csDelaunay;
 
 public class WorldDisplayer2 : MonoBehaviour
 {
-    public GameObject regionsLayer;
+    public RawImage regionsLayer;
     [Range(0f, 1024f)] public int regionDPI = 1024;
     public DisplayMode mode;
     [Range(0f, 100f)] public float mapSize = 10f;
@@ -19,7 +19,7 @@ public class WorldDisplayer2 : MonoBehaviour
 
     public void DrawMap(Map map)
     {
-
+        UpdateLayerTexture();
 
         // Regions
         if (mode == DisplayMode.REGION)
@@ -34,6 +34,18 @@ public class WorldDisplayer2 : MonoBehaviour
             DrawRegions(map.regions);
             //DrawKingdomsTags(map.world.kingdoms);
         }
+    }
+
+    void UpdateLayerTexture()
+    {
+        Destroy(regionsLayer.texture);
+
+        var size = regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        var sizei = Mathf.RoundToInt(size);
+
+        regionsLayer.texture = new Texture2D(sizei, sizei);
+
+        //((Texture2D)regionsLayer.texture).
     }
 
     void DrawRegions(List<Region> regions)
@@ -62,8 +74,6 @@ public class WorldDisplayer2 : MonoBehaviour
 
     void DrawSite(Site site, Color color, float scale=1f)
     {
-        var g = GetSiteObject(site, regionsLayer.transform);
-
         var position = ToVector2(site.Coord);
         var image = g.GetComponent<RawImage>();
         var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x;
@@ -154,7 +164,7 @@ public class WorldDisplayer2 : MonoBehaviour
         var lowest = new Vector2(Mathf.Infinity, Mathf.Infinity);
         var highest = new Vector2(Mathf.NegativeInfinity, Mathf.NegativeInfinity);
 
-        foreach (var point in site.Points()) {
+        foreach (var point in SitePoints(site)) {
             if (lowest.x > point.x) lowest.x = point.x;
             if (lowest.y > point.y) lowest.y = point.y;
             if (highest.x < point.x) highest.x = point.x;
@@ -164,5 +174,22 @@ public class WorldDisplayer2 : MonoBehaviour
         }
 
         return new Vector2[] { lowest, highest };
+    }
+
+    public List<Vector2> SitePoints(Site site)
+    {
+        // generate vertices list
+        var points = new List<Vector2>();
+
+        foreach (Edge edge in site.Edges) {
+            if (edge.ClippedEnds == null) continue;
+            if (points.Count == 0) {
+                points.Add(ToVector2(edge.ClippedEnds[LR.RIGHT]));
+            }
+            var left = ToVector2(edge.ClippedEnds[LR.LEFT]);
+            points.Add(left);
+        }
+
+        return points;
     }
 }
