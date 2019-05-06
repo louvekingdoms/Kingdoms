@@ -750,12 +750,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43f7da26727fa4e44bd931acff4f58b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  regionsLayer: {fileID: 76919804}
+  regionsLayer: {fileID: 76919806}
   regionDPI: 512
   mode: 0
   mapSize: 2
   regionScale: 787
   strokeMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  drawRegion: -1
 --- !u!224 &858054779
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1056,13 +1057,13 @@ MonoBehaviour:
   parameters:
     polygonNumber: 200
     seed: 1
-    maxLloydIterations: 50
-    minLloydIterations: 30
+    maxLloydIterations: 2
+    minLloydIterations: 1
     mu: 0.2
     sigma: 0.1
     isGaussianRandom: 1
-    minRegionSize: 1
-    maxRegionSize: 2
+    minRegionSize: 30
+    maxRegionSize: 50
     topFrontier: 0
     bottomFrontier: 0
     leftFrontier: 0

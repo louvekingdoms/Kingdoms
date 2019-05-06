@@ -14,6 +14,7 @@ public class WorldDisplayer2 : MonoBehaviour
     public Material strokeMaterial;
     public enum DisplayMode { REGION, TERRITORY, KINGDOM };
 
+    public int drawRegion;
 
     Dictionary<Site, GameObject> sitesGameObjects = new Dictionary<Site, GameObject>();
 
@@ -44,16 +45,16 @@ public class WorldDisplayer2 : MonoBehaviour
         var sizei = Mathf.RoundToInt(size);
         
         regionsLayer.texture = new Texture2D(sizei, sizei);
-
-        //((Texture2D)regionsLayer.texture).
     }
 
     void DrawRegions(List<Region> regions)
     {
+        var i = 0;
         foreach (var region in regions)
         {
-            foreach (var site in region.sites)
-            {
+            foreach (var site in region.sites) {
+                i++;
+                //if (i > -1 && i != drawRegion) continue;
                 DrawSite(site, Color.red);
             }
         }
@@ -78,14 +79,17 @@ public class WorldDisplayer2 : MonoBehaviour
 
         var tex = ((Texture2D)regionsLayer.mainTexture);
 
-        tex.SetPencilColor(color);
+        tex.SetPencilColor(Color.green);
 
-        var UVs = new List<Vector2>();
-        foreach (var point in SitePoints(site)) {
-            UVs.Add((point));
+        var UVs = new List<Pencil.Segment>();
+
+        var segs = SiteSegments(site);
+        foreach (var seg in segs) {
+            UVs.Add(seg);
         }
 
-        tex.Polygon(UVs, 3f);
+        tex.SetPencilColor(color);
+        tex.Lines(UVs, 2f);
 
         tex.Apply();
 
@@ -116,6 +120,7 @@ public class WorldDisplayer2 : MonoBehaviour
         */
     }
 
+    /*
     void ShapeSprite(List<Vector2> points, Vector2 position, Sprite sprite)
     {
         List<ushort> triangles = new List<ushort>();
@@ -132,6 +137,7 @@ public class WorldDisplayer2 : MonoBehaviour
         sprite.OverrideGeometry(points.ToArray(), triangles.ToArray()); // set the vertices and triangles
 
     }
+    */
 
     public static Vector2 ToVector2(Vector2f f)
     {
@@ -150,33 +156,29 @@ public class WorldDisplayer2 : MonoBehaviour
         var lowest = new Vector2(Mathf.Infinity, Mathf.Infinity);
         var highest = new Vector2(Mathf.NegativeInfinity, Mathf.NegativeInfinity);
 
+        /*
         foreach (var point in SitePoints(site)) {
             if (lowest.x > point.x) lowest.x = point.x;
             if (lowest.y > point.y) lowest.y = point.y;
             if (highest.x < point.x) highest.x = point.x;
             if (highest.y < point.y) highest.y = point.y;
-            //print("site:" + site.GetHashCode() + " => added point " + point);
-            //print("site:" + site.GetHashCode() + " => range "+ lowest + "/"+highest);
         }
+        */
 
         return new Vector2[] { lowest, highest };
     }
 
-    public List<Vector2> SitePoints(Site site)
+    List<Pencil.Segment> SiteSegments(Site site)
     {
         // generate vertices list
-        var points = new List<Vector2>();
-
+        var segs = new List<Pencil.Segment>();
         foreach (Edge edge in site.Edges) {
             if (edge.ClippedEnds == null) continue;
-            if (points.Count == 0) {
-                //points.Add(ToVector2(edge.RightVertex.Coord));
-                points.Add(ToVector2(edge.ClippedEnds[LR.RIGHT]));
-            }
-            var left = ToVector2(edge.ClippedEnds[LR.LEFT]);
-            points.Add(left);
+            var a = ToVector2(edge.ClippedEnds[LR.LEFT]);
+            var b = ToVector2(edge.ClippedEnds[LR.RIGHT]);
+            segs.Add(new Pencil.Segment { a = a, b = b });
         }
 
-        return points;
+        return segs;
     }
 }

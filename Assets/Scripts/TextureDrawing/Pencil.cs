@@ -5,7 +5,10 @@ using UnityEngine;
 public static class Pencil
 {
     class OutOfUVException : System.Exception { public OutOfUVException(string message) : base(message) { } }
+
     static Color pencilColor = Color.white;
+
+    public class Segment { public Vector2 a; public Vector2 b; }
 
     public static void SetPencilColor(this Texture2D tex, Color c)
     {
@@ -72,6 +75,13 @@ public static class Pencil
     {
         for (int i = 1; i < UVs.Count; i++) {
             tex.Line(UVs[i - 1], UVs[i], width);
+        }
+    }
+
+    public static void Lines(this Texture2D tex, List<Segment> UVSegments, float width = 1f)
+    {
+        foreach(var seg in UVSegments) {
+            tex.Line(seg.a, seg.b, width);
         }
     }
 
