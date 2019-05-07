@@ -6,22 +6,62 @@ using csDelaunay;
 
 public class WorldDisplayer2 : MonoBehaviour
 {
+    [System.Serializable]
+    class Cell
+    {
+        public readonly Region region;
+        public bool isSelected { set { SetAltered(); isSelected = value; } }
+        public bool isHighlighted { set { SetAltered(); isHighlighted = value; } }
+        bool hasChanged;
+        DisplayMode mode;
+
+        public Cell(Region region)
+        {
+            this.region = region;
+        }
+
+        public void SetAltered()
+        {
+            hasChanged = true;
+        }
+
+        public void SetClean()
+        {
+            hasChanged = false;
+        }
+
+        public bool Differs()
+        {
+            return hasChanged;
+        }
+
+        public DisplayMode GetMode()
+        {
+            return mode;
+        }
+
+        public void SetMode(DisplayMode mode)
+        {
+            SetAltered();
+            this.mode = mode;
+        }
+    }
+
     public RawImage regionsLayer;
-    [Range(0f, 1024f)] public int regionDPI = 1024;
-    public DisplayMode mode;
-    [Range(0f, 100f)] public float mapSize = 10f;
-    [Range(0f, 1000f)] public float regionScale = 1f;
+    public DisplayMode defaultMode;
     public Material strokeMaterial;
-    public enum DisplayMode { REGION, TERRITORY, KINGDOM };
+    public enum DisplayMode { CLEAN, TOPOLOGY, POLITICAL };
 
     public int drawRegion;
 
-    Dictionary<Site, GameObject> sitesGameObjects = new Dictionary<Site, GameObject>();
+    List<Cell> cells = new List<Cell>();
 
     public void DrawMap(Map map)
     {
         UpdateLayerTexture();
+        DrawCells(map);
 
+        /*
         // Regions
         if (mode == DisplayMode.REGION)
         {
@@ -33,50 +73,100 @@ public class WorldDisplayer2 : MonoBehaviour
         {
             DrawKingdoms(map.world.kingdoms);
             DrawRegions(map.regions);
-            //DrawKingdomsTags(map.world.kingdoms);
+          
+        //DrawKingdomsTags(map.world.kingdoms);
+        }
+        */
+    }
+
+    void DrawCells(Map map)
+    {
+        if (cells.Count <= 0) {
+            MakeCells(map.regions);
+            print("Made "+cells.Count+" cells");
+        }
+
+        var tex = GetTex();
+
+        foreach (var cell in cells) {
+            if (cell.Differs()) {
+                var edges = cell.region.GetFrontiers().outerEdges;
+                var segs = ToSegments(edges);
+
+                tex.SetPencilColor(Color.green);
+
+                var UVs = new List<Pencil.Segment>();
+                foreach (var seg in segs) {
+                    UVs.Add(seg);
+                }
+
+                float width = 2f;
+                tex.SetPencilColor(Color.white);
+                switch (cell.GetMode()) {
+                    case DisplayMode.POLITICAL:
+                        if (cell.region.IsOwned()) {
+                            tex.SetPencilColor(cell.region.owner.color); width = 4f;
+                        }
+                        break;
+                }
+                tex.Lines(UVs, width);
+                print("Lined cell " + cell);
+                cell.SetClean();
+            }
+        }
+        tex.Apply();
+    }
+
+    void MakeCells(List<Region> regions)
+    {
+        foreach(var region in regions) {
+            var cell = new Cell(region);
+            cell.SetMode(defaultMode);
+            cells.Add(cell);
         }
     }
 
     void UpdateLayerTexture()
     {
-        if (regionsLayer.texture) Destroy(regionsLayer.texture);
-
-        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x+regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
         var sizei = Mathf.RoundToInt(size);
-        
-        regionsLayer.texture = new Texture2D(sizei, sizei);
+
+        if (regionsLayer.texture == null || GetTex().width != sizei || GetTex().height != sizei) {
+
+            if (regionsLayer.texture) Destroy(regionsLayer.texture);
+            regionsLayer.texture = new Texture2D(sizei, sizei);
+
+        }
     }
 
     void DrawRegions(List<Region> regions)
     {
+        var a = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        var b = regionsLayer.GetComponent<RectTransform>().position;
+        var c = new Vector2(b.x, b.y);
+        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        var UVMouse = (a - c) / size + new Vector2(0.5f, 0.5f);
+
+
+
         var i = 0;
         foreach (var region in regions)
         {
             foreach (var site in region.sites) {
                 i++;
-                //if (i > -1 && i != drawRegion) continue;
-                DrawSite(site, Color.red);
+                var col = Color.red;
+                if (IsPointInPolygon(SiteSegments(site), UVMouse)) {
+                    col = Color.white;
+                    DrawSite(site, col);
+                    return;
+                }
+                DrawSite(site, col);
             }
         }
     }
-    
-    void DrawKingdoms(List<Kingdom> kingdoms)
-    {
-        /*
-        foreach (var region in regions)
-        {
-            foreach (var site in region.sites)
-            {
-                DrawSite(site, Color.black);
-            }
-        }
-        */
-    }
 
-    void DrawSite(Site site, Color color, float scale=1f)
+    void DrawSite(Site site, Color color)
     {
-        var position = ToVector2(site.Coord);
-
         var tex = ((Texture2D)regionsLayer.mainTexture);
 
         tex.SetPencilColor(Color.green);
@@ -92,53 +182,8 @@ public class WorldDisplayer2 : MonoBehaviour
         tex.Lines(UVs, 2f);
 
         tex.Apply();
-
-
-        /*
-        var image = g.GetComponent<RawImage>();
-        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x;
-
-        var dim = SiteDimensions(site);
-        var bounds = SiteBounds(site);
-
-        var tex = ((Texture2D)image.mainTexture);
-        tex.SetPencilColor(Color.yellow);
-        tex.Circle(new Vector2(0.5f, 0.5f), 1f);
-
-        tex.SetPencilColor(color);
-        var UVs = new List<Vector2>();
-        foreach(var point in SitePoints(site)) {
-            UVs.Add((point - bounds[0]) / dim);
-        }
-        tex.Polygon(UVs, 3f);
-        tex.Apply();
-        
-        // Set position and size
-        var rect = g.GetComponent<RectTransform>();
-        rect.anchoredPosition = position*size-new Vector2(size/2, size/2);
-        rect.sizeDelta = (dim)* regionScale;
-        */
     }
-
-    /*
-    void ShapeSprite(List<Vector2> points, Vector2 position, Sprite sprite)
-    {
-        List<ushort> triangles = new List<ushort>();
-        for (int i = 1; i < points.Count - 1; i++)
-        {
-            triangles.Add(0);
-            triangles.Add((ushort)(i));
-            triangles.Add((ushort)(i + 1));
-        }
-        triangles.Add(0);
-        triangles.Add((ushort)(points.Count - 1));
-        triangles.Add((ushort)(1));
-
-        sprite.OverrideGeometry(points.ToArray(), triangles.ToArray()); // set the vertices and triangles
-
-    }
-    */
-
+    
     public static Vector2 ToVector2(Vector2f f)
     {
         return new Vector2(f.x, f.y);
@@ -170,15 +215,45 @@ public class WorldDisplayer2 : MonoBehaviour
 
     List<Pencil.Segment> SiteSegments(Site site)
     {
-        // generate vertices list
+        return ToSegments(site.Edges);
+    }
+
+    bool IsPointInPolygon(List<Pencil.Segment> polygon, Vector2 point)
+    {
+        bool isInside = false;
+        foreach(var seg in polygon) { 
+            if (
+            ((seg.b.y > point.y) != (seg.a.y > point.y)) &&
+            (point.x < (seg.a.x - seg.b.x) * (point.y - seg.b.y) / (seg.a.y - seg.b.y) + seg.b.x)
+            ) {
+                isInside = !isInside;
+            }
+        }
+        return isInside;
+    }
+
+    List<Pencil.Segment> ToSegments(List<Edge> edges)
+    {
         var segs = new List<Pencil.Segment>();
-        foreach (Edge edge in site.Edges) {
+        foreach (Edge edge in edges) {
             if (edge.ClippedEnds == null) continue;
             var a = ToVector2(edge.ClippedEnds[LR.LEFT]);
             var b = ToVector2(edge.ClippedEnds[LR.RIGHT]);
             segs.Add(new Pencil.Segment { a = a, b = b });
         }
-
         return segs;
+    }
+
+    Pencil.Segment ToSegment(Edge edge)
+    {
+        var a = ToVector2(edge.ClippedEnds[LR.LEFT]);
+        var b = ToVector2(edge.ClippedEnds[LR.RIGHT]);
+        return new Pencil.Segment { a = a, b = b };
+    }
+
+    Texture2D GetTex()
+    {
+
+        return ((Texture2D)regionsLayer.mainTexture);
     }
 }

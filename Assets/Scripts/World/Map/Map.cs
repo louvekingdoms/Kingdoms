@@ -130,7 +130,7 @@ public class Map
             regions.Add(region);
         }
 
-        Debug.Log("Generated " + regions.Count + " regions from "+ sites.Count+" sites");
+        Logger.Info("Generated " + regions.Count + " regions from "+ sites.Count+" sites");
 
         return regions;
     }
@@ -147,7 +147,7 @@ public class Map
             var point = new Vector2f(x, y);
             points.Add(point);
             if (point.x > 1 || point.y > 1) {
-                Debug.LogWarning("Warning out of bounds region : " + point);
+                Logger.Warn("Warning out of bounds region : " + point);
             }
         }
 

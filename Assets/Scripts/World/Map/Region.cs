@@ -103,4 +103,9 @@ public class Region
         }
         return neighborSites;
     }
+
+    public bool IsOwned()
+    {
+        return owner != null;
+    }
 }
