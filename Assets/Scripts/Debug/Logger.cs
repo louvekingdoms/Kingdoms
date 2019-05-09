@@ -12,11 +12,16 @@ using UnityEditor;
 public class Logger
 {
     static StringBuilder builder = new StringBuilder();
+
+
     static public string locale = "fr-FR";
     static public int callerLength = 18;
     static public int methodLength = 12;
     static public int flushEverySecond = 1;
     static public bool flushToUnityConsole = false;
+    static public bool useNetworkLogger = true;
+    static public int networkLoggerPort = 4004;
+    static LoggerNetClient netClient;
 
     public enum type {DEBUG, INFO, WARNING, ERROR };
 
@@ -38,6 +43,13 @@ public class Logger
         Directory.CreateDirectory(Paths.LogPath());
         fullPath = Paths.LogFile();
         File.WriteAllText(fullPath, firstLine+"\n");
+
+        if (useNetworkLogger)
+        {
+            netClient = new LoggerNetClient(networkLoggerPort);
+            netClient.Send("<< Logger connection started >>");
+        }
+
         coroutineSlave.StartCoroutine(Flush());
         
         isInitialized = true;
@@ -110,8 +122,18 @@ public class Logger
             }
         }
 
+        // Net
+        if (useNetworkLogger)
+        {
+            string[] lines = line.Split('\n');
+            foreach (string consoleLine in lines)
+            {
+                netClient.Send(consoleLine);
+            }
+        }
+
         // Kills the app if exit is set to true - useful to write logs before quitting
-        
+
         if (exit) {
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;

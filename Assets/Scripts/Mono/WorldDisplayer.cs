@@ -68,6 +68,7 @@ public class WorldDisplayer : MonoBehaviour
         debugText.text = "Regions : " + map.regions.Count + "\n" +
             "Kingdoms : " + map.world.kingdoms.Count;
 
+        Logger.Debug("Drawing full map at a resolution of " + _resolution +"x ("+map.regions.Count+" regions, "+map.world.kingdoms.Count+" kingdoms)");
     }
 
     void DrawKingdomsTags(List<Kingdom> kingdoms)
