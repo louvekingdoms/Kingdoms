@@ -43,10 +43,13 @@ public class WorldDisplayer : MonoBehaviour
         sitesTags = new Dictionary<Site, TextMeshProUGUI>();
     }
 
-    // Here is a very simple way to display the result using a simple bresenham line algorithm
-    // Just attach this script to a quad
     public void DrawMap(Map map, int _resolution)
     {
+        if (!gameObject.active)
+        {
+            return;
+        }
+
         resolution = _resolution;
         shouldExtraDraw = !shouldExtraDraw;
         

@@ -23,7 +23,6 @@ public class WorldGenerator : MonoBehaviour
 
     void Start()
     {
-
         world = new World(seed);
 
         world.map.Generate(parameters, world);
