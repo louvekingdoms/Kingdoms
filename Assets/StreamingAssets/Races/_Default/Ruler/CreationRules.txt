@@ -6,7 +6,7 @@ CHARACTERISTICS:[
     charisma: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
     luck: [RULES:[ON_CHANGE: MAP(CHAR:arrogance, OVER:5)]],
     wisdom: [RULES: [ON_CHANGE: REVERSE_MAP(CHAR:arrogance)]],
-    arrogance: [MIN:0, MAX:100, RULES: [ON_CHANGE: FREEZE()]]
+    arrogance: [MIN:0, MAX:10, RULES:[IS_FROZEN:YES, IS_BAD:YES]]
 ],
 DEFINITION:[
     BASE_LIFESPAN:60
