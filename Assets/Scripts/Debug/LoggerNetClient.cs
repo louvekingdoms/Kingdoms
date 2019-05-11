@@ -9,7 +9,7 @@ using UnityEngine;
 public class LoggerNetClient
 {
     TcpClient socketConnection;
-    Thread clientReceiveThread;
+    Thread clientSendThread;
     bool isAvailable = true;
     int port = 0;
 
@@ -25,9 +25,9 @@ public class LoggerNetClient
             return;
         }
 
-        if (clientReceiveThread == null ||!clientReceiveThread.IsAlive)
+        if (clientSendThread == null ||!clientSendThread.IsAlive)
         {
-            ConnectToServer(port);
+            InitializeNetClient();
         }
 
         SendMessage(msg);
@@ -43,7 +43,7 @@ public class LoggerNetClient
 
         try
         {
-            ConnectToServer(port);
+            InitializeNetClient();
         }
         catch (Exception e)
         {
@@ -52,11 +52,18 @@ public class LoggerNetClient
         }
     }
 
-    void ConnectToServer(int port)
+    void InitializeNetClient()
+    {
+        clientSendThread = new Thread(new ThreadStart(ConnectToServer));
+        clientSendThread.IsBackground = true;
+        clientSendThread.Start();
+    }
+
+    void ConnectToServer()
     {
         try
         {
-            socketConnection = new TcpClient("localhost", port);
+            socketConnection = new TcpClient("localhost", this.port);
         }
         catch (SocketException socketException)
         {

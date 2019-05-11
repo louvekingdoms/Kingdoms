@@ -47,6 +47,7 @@ public class Logger
         if (useNetworkLogger)
         {
             netClient = new LoggerNetClient(networkLoggerPort);
+            netClient.Send(">clear");
             netClient.Send("<< Logger connection started >>");
         }
 
@@ -114,21 +115,32 @@ public class Logger
     {
         // Writes to disk
         string line = builder.ToString();
-        File.AppendAllText(fullPath, line);
-        if (flushToUnityConsole) {
-            string[] lines = line.Split('\n');
-            foreach(string consoleLine in lines) {
-                UnityEngine.Debug.Log(consoleLine);
-            }
-        }
 
-        // Net
-        if (useNetworkLogger)
+        if (line.Length > 0)
         {
-            string[] lines = line.Split('\n');
-            foreach (string consoleLine in lines)
+            File.AppendAllText(fullPath, line);
+            yield return true;
+
+            // Output to console
+            if (flushToUnityConsole)
             {
-                netClient.Send(consoleLine);
+                string[] lines = line.Split('\n');
+                foreach (string consoleLine in lines)
+                {
+                    UnityEngine.Debug.Log(consoleLine);
+                }
+            }
+            yield return true;
+
+            // Net
+            if (useNetworkLogger)
+            {
+                string[] lines = line.Split('\n');
+                foreach (string consoleLine in lines)
+                {
+                    netClient.Send(consoleLine);
+                    yield return true;
+                }
             }
         }
 
