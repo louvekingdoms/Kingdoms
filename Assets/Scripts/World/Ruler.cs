@@ -60,13 +60,42 @@ public class Ruler
     // Varying characteristic
     public class Characteristic
     {
-        public int value;
+        int value;
         public readonly CharacteristicDefinition definition;
 
         public Characteristic(CharacteristicDefinition _definition)
         {
             definition = _definition;
             value = definition.min;
+        }
+
+        public void Increase(Characteristics otherChars, int amount=1)
+        {
+            var oldVal = value;
+            value = Mathf.Clamp(value + amount, definition.min, definition.max);
+            definition.rules.onChange(otherChars, value - oldVal);
+        }
+
+        public void Decrease(Characteristics otherChars, int amount = 1)
+        {
+            var oldVal = value;
+            value = Mathf.Clamp(value - amount, definition.min, definition.max);
+            definition.rules.onChange(otherChars, value - oldVal);
+        }
+
+        public void SetRaw(int val)
+        {
+            value = val;
+        }
+
+        public int GetValue()
+        {
+            return value;
+        }
+
+        public int GetClampedValue()
+        {
+            return Mathf.Clamp(value, definition.min, definition.max);
         }
     }
 
@@ -83,6 +112,7 @@ public class Ruler
             // <current characteristics, concerned chara, amount of change>
             public System.Action<Characteristics, int> onChange;
             public bool isFrozen = false;   // The player cannot change this variable value
+            public bool isBad = false; // The characteristic is considered to be a negative trait
         }
     }
 
