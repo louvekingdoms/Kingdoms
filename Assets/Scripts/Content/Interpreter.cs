@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,8 +17,9 @@ public static class Interpreter
     #region UTILITIES
     class UnsolvedDepthException : Exception { public UnsolvedDepthException(string message) : base(message) { } };
     class InvalidRelationException : Exception { public InvalidRelationException(string message) : base(message) { } };
-    class UnknownFunctionException : Exception { public UnknownFunctionException(string message, IEnumerable cmdList) : base(message+"\nAvailable functions:"+ string.Join("\n", cmdList)) { } };
-    
+    class UnknownFunctionException : Exception { public UnknownFunctionException(string message, List<string> cmdList) : base(message+"\nAvailable functions:"+ string.Join("\n", cmdList)) { } };
+    class InvalidBoolException : Exception { public InvalidBoolException(string message) : base(message) { } };
+
     class Context : Dictionary<string, string> {}
     class Relation
     {
@@ -57,6 +59,36 @@ public static class Interpreter
 
         // Error?!
         throw new InvalidRelationException(chunk); 
+    }
+
+    static Relation SeparateFunctionCall(string chunk)
+    {
+        int index = 0;
+        int start = 0;
+        int end = 0;
+        foreach (char chr in chunk)
+        {
+            if (chr == functionMarkers[0])
+            {
+                start = index;
+            }
+            if (start > 0 && chr == functionMarkers[1])
+            {
+                end = index;
+            }
+
+            index++;
+        }
+        if (start == end || start == 0 || end == 0)
+        {
+            throw new InvalidRelationException(chunk);
+        }
+
+        var key = chunk.Substring(0, start);
+        var content = chunk.Substring(start + 1, chunk.Length - (start + 2));
+        return new Relation(key, content);
+        /*
+            */
     }
     
     static Context ReadContext(this string chunk)
@@ -144,8 +176,8 @@ public static class Interpreter
                 var over = 0;
                 if (x.arguments.ContainsKey("OVER")) over = Convert.ToInt32(x.arguments["OVER"]);
 
-                if (x.concernedCharacteristic.value > over){
-                    x.rulerCharacteristics[characteristic].value += x.change;
+                if (x.concernedCharacteristic.GetClampedValue() > over + Mathf.Min(x.change, 0)){
+                    x.rulerCharacteristics[characteristic].SetRaw(x.rulerCharacteristics[characteristic].GetValue() + x.change);
                 }
             }
         },
@@ -155,14 +187,14 @@ public static class Interpreter
                 var over = 0;
                 if (x.arguments.ContainsKey("OVER")) over = Convert.ToInt32(x.arguments["OVER"]);
 
-                if (x.concernedCharacteristic.value > over){
-                    x.rulerCharacteristics[characteristic].value -= x.change;
+                if (x.concernedCharacteristic.GetClampedValue() > over + Mathf.Min(x.change, 0)){
+                    x.rulerCharacteristics[characteristic].SetRaw(x.rulerCharacteristics[characteristic].GetValue() - x.change);
                 }
             }
         },
         {
             "FREEZE",(CharacteristicDefinitionRuleParameters x) => {
-                x.concernedCharacteristic.value -= x.change;
+                x.concernedCharacteristic.SetRaw(x.concernedCharacteristic.GetValue() - x.change);
             }
         }
     };
@@ -212,14 +244,38 @@ public static class Interpreter
         foreach (var setting in exploded) {
             var relation = SeparateRelation(setting);
             switch (relation.key.ToUpper()) {
+
                 case "MIN": def.min = Convert.ToInt32(relation.content); break;
+
                 case "MAX": def.max = Convert.ToInt32(relation.content); break;
+
                 case "COST": def.cost = Convert.ToInt32(relation.content); break;
-                case "RULES": def.rules = ReadCharacteristicDefinitionRules(relation.content, charName); break;
+
+                case "RULES":
+                    def.rules = ReadCharacteristicDefinitionRules(relation.content, charName);
+                    break;
+
             }
         }
 
         return def;
+    }
+
+    static bool StringToBool(string chunk)
+    {
+        switch (chunk.ToUpper())
+        {
+            case "YES":
+            case "TRUE":
+            case "1":
+                return true;
+
+            case "NO":
+            case "FALSE":
+            case "0":
+                return false;
+        }
+        throw new InvalidBoolException(chunk + " is not a valid bool");
     }
 
     // RULES:[ON_OVER_HALF: xx(xxx), ON_CHANGE: xx(xxx)]
@@ -232,8 +288,16 @@ public static class Interpreter
             var relation = SeparateRelation(setting);
             switch (relation.key.ToUpper()){
                 case "ON_CHANGE": rules.onChange += (Ruler.Characteristics charaSet, int change) => {
-                    ReadCharacteristicDefinitionRule(relation.content.Truncate(), charName).Invoke(charaSet, change);
+                    ReadCharacteristicDefinitionRule(relation.content, charName).Invoke(charaSet, change);
                 }; break;
+
+                case "IS_BAD":
+                    rules.isBad = StringToBool(relation.content);
+                    break;
+
+                case "IS_FROZEN":
+                    rules.isFrozen = StringToBool(relation.content);
+                    break;
             }
         }
         
@@ -243,10 +307,10 @@ public static class Interpreter
     // xx(a:b)
     static Action<Ruler.Characteristics, int> ReadCharacteristicDefinitionRule(string chunk, string charName)
     {
-        var relation = SeparateRelation(chunk);
+        var relation = SeparateFunctionCall(chunk);
         if (!characteristicDefinitionsRules.ContainsKey(relation.key))
         {
-            throw new UnknownFunctionException(relation.key, characteristicDefinitionsRules.Keys);
+            throw new UnknownFunctionException(relation.key, characteristicDefinitionsRules.Keys.ToList());
         }
 
         return (Ruler.Characteristics set, int change) => {
@@ -256,7 +320,7 @@ public static class Interpreter
                     concernedCharacteristic = set[charName],
                     rulerCharacteristics = set,
                     change = change,
-                    arguments = ReadContext(relation.content.Truncate())
+                    arguments = ReadContext(relation.content)
                 }
             );
         };
