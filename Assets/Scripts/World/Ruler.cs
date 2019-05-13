@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class Ruler
 {
-    public readonly string name;
     public readonly Race race;
     public Characteristics characteristics;
-    int age = 20;
+    public string name;
+    public int age = 20;
     int birthDate = 1;
     float health = 100f;
 
@@ -45,16 +45,15 @@ public class Ruler
         }
     }
 
-    public int GetAge()
-    {
-        return age;
-    }
 
     public class CreationRules
     {
         public CharacteristicDefinitions characteristicDefinitions;
+        public int stock = 15;
         public int maximumLifespan = 60;
         public int majority = 16;
+        public float lifespanToStockRatio = 0.8f;
+        public int maxStartingAge;
     }
 
     // Varying characteristic
