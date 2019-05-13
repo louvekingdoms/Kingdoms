@@ -10,14 +10,14 @@ public class Race
     {
         public int id;
         public string name;
-        public string demonym;
+        public string plural;
     }
     
 
     public readonly int id = 0;
 
     public string name = "Default";
-    public string demonym = "{0}'s";
+    public string plural = "{0}s";
     public Ruler.CreationRules rulerCreationRules;
 
     public List<string> kingdomNames = new List<string>() { "DefaultKingdom" };
@@ -27,14 +27,14 @@ public class Race
     {
         id = _id;
         name = _name;
-        demonym = _adjective;
+        plural = _adjective;
     }
 
     public Race(int _id, string _name, string _adjective, Ruler.CreationRules _rulerCreationRules)
     {
         id = _id;
         name = _name;
-        demonym = _adjective;
+        plural = _adjective;
         rulerCreationRules = _rulerCreationRules;
     }
 

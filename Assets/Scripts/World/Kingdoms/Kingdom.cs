@@ -10,16 +10,19 @@ public class Kingdom
 
     public int mainland;
     public string name;
+    public string demonym;
     public Color color;
     public Ruler ruler;
 
-    public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler)
+    public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
     {
         TakeOwnership(_territory);
         SetName(_name);
         mainland = 0;
         mainRace = _mainRace;
         ruler = _ruler;
+        demonym = _demonym;
+        if (_demonym == null) demonym = name + "'s";
     }
 
     ///////////////////////////////////

@@ -45,7 +45,7 @@ public class Library
         try
         {
             var meta = JsonUtility.FromJson(Disk.ReadAllText(Paths.RaceMetafile(raceFolderName)), typeof(Race.Info)) as Race.Info;
-            race = new Race(meta.id, meta.name, meta.demonym);
+            race = new Race(meta.id, meta.name, meta.plural);
             races.Add(race.id, race);
         }
         catch (System.Exception e)
