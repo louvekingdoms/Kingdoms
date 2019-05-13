@@ -13,7 +13,6 @@ public class Logger
 {
     static StringBuilder builder = new StringBuilder();
 
-
     static public string locale = "fr-FR";
     static public int callerLength = 18;
     static public int methodLength = 12;
@@ -78,7 +77,7 @@ public class Logger
         string caller = "";
 
         // Formatting the "X=>Y" file/method pattern
-        if (UnityEngine.Debug.isDebugBuild) {
+        if (Game.IsRunningInMainThread() && UnityEngine.Debug.isDebugBuild) {
             StackFrame sf = new StackFrame(2, true);
             string file = sf.GetFileName().Replace(Application.dataPath.Replace("/", "\\") + "\\Scripts\\", "");
             string method = sf.GetMethod().Name;

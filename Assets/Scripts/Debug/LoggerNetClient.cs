@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class LoggerNetClient
 {
+    Thread mainThread;
     TcpClient socketConnection;
     Thread clientSendThread;
     bool isAvailable = true;
