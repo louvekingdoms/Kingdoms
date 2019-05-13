@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c993ba2936e4b814aa513b92436410ad
+guid: b5512c92c959e7c4f9f5037b2aea4519
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -8,9 +8,9 @@ TrueTypeFontImporter:
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
-  fontName: Morris Roman
+  fontName: NicerNightie
   fontNames:
-  - Morris Roman
+  - NicerNightie
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
