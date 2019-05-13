@@ -45,7 +45,7 @@ public class WorldDisplayer : MonoBehaviour
 
     public void DrawMap(Map map, int _resolution)
     {
-        if (!gameObject.active)
+        if (!gameObject.activeSelf)
         {
             return;
         }

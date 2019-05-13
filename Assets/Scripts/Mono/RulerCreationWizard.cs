@@ -160,7 +160,6 @@ public class RulerCreationWizard : MonoBehaviour
         int maxStockNow = GetMaxStock();
         if (previousMaxStock != maxStockNow)
         {
-            print("Max stock used to be " + previousMaxStock + ", but is now " + maxStockNow);
             stock += maxStockNow - previousMaxStock;
             return;
         }
@@ -176,7 +175,6 @@ public class RulerCreationWizard : MonoBehaviour
         int maxStockNow = GetMaxStock();
         if (previousMaxStock != maxStockNow)
         {
-            print("Max stock used to be " + previousMaxStock + ", but is now " + maxStockNow);
             var diff = maxStockNow - previousMaxStock;
             if (stock+ diff < 0)
             {
