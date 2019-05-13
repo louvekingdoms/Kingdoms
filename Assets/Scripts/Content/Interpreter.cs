@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Globalization;
 
 public static class Interpreter
 {
@@ -216,6 +217,11 @@ public static class Interpreter
                 case "CHARACTERISTICS":
                     rules.characteristicDefinitions = ReadCharacteristicDefinitions(relation.content);
                     break;
+                case "STOCK": rules.stock = Convert.ToInt32(relation.content); break;
+                case "MAJORITY": rules.majority = Convert.ToInt32(relation.content); break;
+                case "BASE_LIFESPAN": rules.maximumLifespan = Convert.ToInt32(relation.content); break;
+                case "LIFESPAN_TO_STOCK_RATIO": rules.lifespanToStockRatio = Convert.ToSingle(relation.content, CultureInfo.InvariantCulture); break;
+                case "MAX_STARTING_AGE": rules.maxStartingAge = Convert.ToInt32(relation.content); break;
             }
         }
 

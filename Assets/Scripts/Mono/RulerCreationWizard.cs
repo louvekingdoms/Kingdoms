@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Linq;
 using TMPro;
 
@@ -9,8 +10,14 @@ public class RulerCreationWizard : MonoBehaviour
     public GameObject row;
     public Transform parentRow;
     public Gradient valueGradient;
-    public TextMeshProUGUI rulerName;
+    public TMP_InputField rulerName;
+    public TMP_Dropdown raceDropdown;
+    public TextMeshProUGUI stockDisplayer;
+    public TextMeshProUGUI ageDisplayer;
+    public Button increaseAgeButton;
+    public Button decreaseAgeButton;
 
+    int stock;
     Ruler ruler;
     Dictionary<string, RulerCreationWizardCharaRow> rows = new Dictionary<string, RulerCreationWizardCharaRow>();
 
@@ -18,14 +25,44 @@ public class RulerCreationWizard : MonoBehaviour
     void Start()
     {
         ruler = new Ruler();
-
+        stock = ruler.race.rulerCreationRules.stock;
         CreateCharacteristics();
-
+        CreateRaces();
+        increaseAgeButton.onClick.AddListener(delegate { IncreaseAge(); });
+        decreaseAgeButton.onClick.AddListener(delegate { DecreaseAge(); });
     }
     
+    void CreateRaces()
+    {
+        raceDropdown.ClearOptions();
+        var newOptions = new List<TMP_Dropdown.OptionData>();
+        foreach (var id in Library.races.Keys) {
+            var data = new TMP_Dropdown.OptionData(Library.races[id].name);
+            newOptions.Add(data);
+        }
+        raceDropdown.AddOptions(newOptions);
+
+        raceDropdown.onValueChanged.AddListener((x) => {
+            var raceName = raceDropdown.options[x].text;
+            foreach(var id in Library.races.Keys)
+            {
+                var libRace = Library.races[id];
+                if (libRace.name == raceName)
+                {
+                    var newRuler = new Ruler(ruler.name, ruler.race);
+                    UpdatePersonalDisplay();
+                    return;
+                }
+            }
+        });
+    }
 
     void CreateCharacteristics()
     {
+        // Update name
+        rulerName.onValueChanged.AddListener((x) => { ruler.name = x; });
+
+        // Display each characteristic
         foreach (var charaName in ruler.characteristics.Keys)
         {
             var r = Instantiate(row, parentRow);
@@ -41,21 +78,42 @@ public class RulerCreationWizard : MonoBehaviour
             {
                 charaLine.increaseButton.onClick.AddListener(delegate
                 {
+                    if (stock <= 0 || charaLine.characteristic.GetValue() >= charaLine.characteristic.definition.max) return;
                     charaLine.characteristic.Increase(ruler.characteristics);
                     UpdateCharacteristics();
+                    stock--;
+                    UpdateStockDisplay();
                 });
                 charaLine.decreaseButton.onClick.AddListener(delegate
                 {
+                    if (charaLine.characteristic.GetValue() <= charaLine.characteristic.definition.min) return;
                     charaLine.characteristic.Decrease(ruler.characteristics);
                     UpdateCharacteristics();
+                    stock++;
+                    UpdateStockDisplay();
                 });
             }
         
             rows[charaName] = charaLine;
 
         }
-        Destroy(row);
+        row.SetActive(false);
         UpdateDisplay();
+    }
+
+    int GetMaxStock()
+    {
+        int maxStock = ruler.race.rulerCreationRules.stock
+            + Mathf.FloorToInt((ruler.age - ruler.race.rulerCreationRules.majority) * ruler.race.rulerCreationRules.lifespanToStockRatio);
+
+        return maxStock;
+    }
+
+    void UpdateStockDisplay()
+    {
+        stockDisplayer.text = string.Format("{0} creation points left", stock.ToString());
+        var color = valueGradient.Evaluate(1f-stock/(float)ruler.race.rulerCreationRules.stock);
+        stockDisplayer.color = color;
     }
 
     void UpdateCharacteristics()
@@ -83,7 +141,52 @@ public class RulerCreationWizard : MonoBehaviour
     void UpdateDisplay()
     {
         UpdateCharacteristics();
+        UpdateStockDisplay();
+        UpdatePersonalDisplay();
         rulerName.text = ruler.name;
+    }
+
+    void UpdatePersonalDisplay()
+    {
+        ageDisplayer.text = ruler.age.ToString();
+
+    }
+
+    void IncreaseAge()
+    {
+        if (ruler.age >= ruler.race.rulerCreationRules.maxStartingAge) return;
+        int previousMaxStock = GetMaxStock();
+        ruler.age++;
+        int maxStockNow = GetMaxStock();
+        if (previousMaxStock != maxStockNow)
+        {
+            print("Max stock used to be " + previousMaxStock + ", but is now " + maxStockNow);
+            stock += maxStockNow - previousMaxStock;
+            return;
+        }
+        UpdatePersonalDisplay();
+        UpdateStockDisplay();
+    }
+
+    void DecreaseAge()
+    {
+        if (ruler.age <= ruler.race.rulerCreationRules.majority) return;
+        int previousMaxStock = GetMaxStock();
+        ruler.age--;
+        int maxStockNow = GetMaxStock();
+        if (previousMaxStock != maxStockNow)
+        {
+            print("Max stock used to be " + previousMaxStock + ", but is now " + maxStockNow);
+            var diff = maxStockNow - previousMaxStock;
+            if (stock+ diff < 0)
+            {
+                ruler.age++;
+                return;
+            }
+            stock += diff;
+        }
+        UpdatePersonalDisplay();
+        UpdateStockDisplay();
     }
     
 }
