@@ -7,50 +7,54 @@ using csDelaunay;
 public class WorldDisplayer2 : MonoBehaviour
 {
     [System.Serializable]
-    class Cell
+    private class Cell : System.Object
     {
         public readonly Region region;
-        public bool isSelected { set { SetAltered(); isSelected = value; } }
-        public bool isHighlighted { set { SetAltered(); isHighlighted = value; } }
-        bool hasChanged;
-        DisplayMode mode;
+        public bool isSelected;
+        bool isHighlighted;
+        public DisplayMode mode = DisplayMode.HIDDEN;
+        Cell previousState;
 
-        public Cell(Region region)
+        public Cell(Region _region)
         {
-            this.region = region;
+            region = _region;
         }
 
-        public void SetAltered()
+        public void MarkDirty()
         {
-            hasChanged = true;
+            previousState = new Cell(region) {
+                isHighlighted = isHighlighted,
+                isSelected = isSelected,
+                mode = mode
+            };
+        }
+        
+        public bool IsDirty()
+        {
+            return !ReferenceEquals(this, previousState);
         }
 
-        public void SetClean()
+        public void Clean()
         {
-            hasChanged = false;
+            previousState = this;
         }
 
-        public bool Differs()
+        public void SetHighlight(bool value)
         {
-            return hasChanged;
+            if (value != isHighlighted) MarkDirty();
+            isHighlighted = value;
         }
 
-        public DisplayMode GetMode()
+        public bool IsHighlighted()
         {
-            return mode;
-        }
-
-        public void SetMode(DisplayMode mode)
-        {
-            SetAltered();
-            this.mode = mode;
+            return isHighlighted;
         }
     }
 
     public RawImage regionsLayer;
     public DisplayMode defaultMode;
     public Material strokeMaterial;
-    public enum DisplayMode { CLEAN, TOPOLOGY, POLITICAL };
+    public enum DisplayMode { HIDDEN, CLEAN, TOPOLOGY, POLITICAL };
 
     public int drawRegion;
 
@@ -59,8 +63,8 @@ public class WorldDisplayer2 : MonoBehaviour
     public void DrawMap(Map map)
     {
         UpdateLayerTexture();
+        CheckMousePosition(GetMouseUV());
         DrawCells(map);
-
         /*
         // Regions
         if (mode == DisplayMode.REGION)
@@ -86,10 +90,12 @@ public class WorldDisplayer2 : MonoBehaviour
             print("Made "+cells.Count+" cells");
         }
 
+        // Sorting..?
+
         var tex = GetTex();
 
         foreach (var cell in cells) {
-            if (cell.Differs()) {
+            if (cell.IsDirty()) {
                 var edges = cell.region.GetFrontiers().outerEdges;
                 var segs = ToSegments(edges);
 
@@ -102,18 +108,23 @@ public class WorldDisplayer2 : MonoBehaviour
 
                 float width = 2f;
                 tex.SetPencilColor(Color.white);
-                switch (cell.GetMode()) {
+                switch (cell.mode) {
                     case DisplayMode.POLITICAL:
                         if (cell.region.IsOwned()) {
-                            tex.SetPencilColor(cell.region.owner.color); width = 4f;
+                            tex.SetPencilColor(cell.region.owner.color);
+                            width = 4f;
                         }
                         break;
                 }
+                if (cell.IsHighlighted()) tex.SetPencilColor(new Color(1f, 0f, 1f));
+
                 tex.Lines(UVs, width);
-                print("Lined cell " + cell);
-                cell.SetClean();
+                cell.Clean();
             }
         }
+
+        tex.SetPencilColor(Color.red);
+        try { tex.Circle(GetMouseUV(), 2f); } catch { }
         tex.Apply();
     }
 
@@ -121,7 +132,8 @@ public class WorldDisplayer2 : MonoBehaviour
     {
         foreach(var region in regions) {
             var cell = new Cell(region);
-            cell.SetMode(defaultMode);
+            cell.mode = defaultMode;
+            cell.MarkDirty();
             cells.Add(cell);
         }
     }
@@ -139,28 +151,26 @@ public class WorldDisplayer2 : MonoBehaviour
         }
     }
 
-    void DrawRegions(List<Region> regions)
+    Vector2 GetMouseUV()
     {
-        var a = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-        var b = regionsLayer.GetComponent<RectTransform>().position;
-        var c = new Vector2(b.x, b.y);
+        var mouse = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        var layerPos = regionsLayer.GetComponent<RectTransform>().position;
+        var layerPos2D = new Vector2(layerPos.x, layerPos.y);
         var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
-        var UVMouse = (a - c) / size + new Vector2(0.5f, 0.5f);
+        var UVMouse = (mouse - layerPos2D) / size + new Vector2(0.5f, 0.5f);
 
+        return UVMouse;
+    }
 
-
-        var i = 0;
-        foreach (var region in regions)
-        {
-            foreach (var site in region.sites) {
-                i++;
-                var col = Color.red;
-                if (IsPointInPolygon(SiteSegments(site), UVMouse)) {
-                    col = Color.white;
-                    DrawSite(site, col);
-                    return;
-                }
-                DrawSite(site, col);
+    void CheckMousePosition(Vector2 mouseUV)
+    {
+        
+        foreach (var cell in cells) {
+            if (IsPointInPolygon(ToSegments(cell.region.GetFrontiers().outerEdges), mouseUV)) {
+                cell.SetHighlight(true);
+            }
+            else {
+                cell.SetHighlight(false);
             }
         }
     }
@@ -191,24 +201,25 @@ public class WorldDisplayer2 : MonoBehaviour
     
     Vector2 SiteDimensions(Site site)
     {
-        var bounds = SiteBounds(site);
+        var bounds = PolygonBounds(SiteSegments(site));
         var dim = bounds[1] - bounds[0];
         return dim;
     }
 
-    Vector2[] SiteBounds(Site site)
+    Vector2[] PolygonBounds(List<Pencil.Segment> polygon)
     {
         var lowest = new Vector2(Mathf.Infinity, Mathf.Infinity);
         var highest = new Vector2(Mathf.NegativeInfinity, Mathf.NegativeInfinity);
 
-        /*
-        foreach (var point in SitePoints(site)) {
-            if (lowest.x > point.x) lowest.x = point.x;
-            if (lowest.y > point.y) lowest.y = point.y;
-            if (highest.x < point.x) highest.x = point.x;
-            if (highest.y < point.y) highest.y = point.y;
+        foreach (var segment in polygon) {
+            var points = new List<Vector2>() { segment.a, segment.b };
+            foreach (var point in points) {
+                if (lowest.x > point.x) lowest.x = point.x;
+                if (lowest.y > point.y) lowest.y = point.y;
+                if (highest.x < point.x) highest.x = point.x;
+                if (highest.y < point.y) highest.y = point.y;
+            }
         }
-        */
 
         return new Vector2[] { lowest, highest };
     }
@@ -221,15 +232,23 @@ public class WorldDisplayer2 : MonoBehaviour
     bool IsPointInPolygon(List<Pencil.Segment> polygon, Vector2 point)
     {
         bool isInside = false;
-        foreach(var seg in polygon) { 
-            if (
-            ((seg.b.y > point.y) != (seg.a.y > point.y)) &&
-            (point.x < (seg.a.x - seg.b.x) * (point.y - seg.b.y) / (seg.a.y - seg.b.y) + seg.b.x)
-            ) {
-                isInside = !isInside;
-            }
+        var bounds = PolygonBounds(polygon);
+
+        if (!IsPointInBounds(point, bounds)) return false;
+
+        foreach (var segment in polygon) {
+
         }
+
         return isInside;
+    }
+
+    bool IsPointInBounds(Vector2 point, Vector2[] bounds)
+    {
+        return point.x > bounds[0].x
+            && point.x < bounds[1].x
+            && point.x > bounds[0].y
+            && point.x < bounds[1].y;
     }
 
     List<Pencil.Segment> ToSegments(List<Edge> edges)
