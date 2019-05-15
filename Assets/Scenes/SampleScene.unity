@@ -751,7 +751,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   regionsLayer: {fileID: 76919806}
-  mode: 0
+  defaultMode: 3
   strokeMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   drawRegion: -1
 --- !u!224 &858054779

@@ -12,7 +12,7 @@ public class WorldGenerator : MonoBehaviour
     public float refreshRate = 0.25f;
     public int seed = 1;
 
-    public WorldDisplayer2 displayer;
+    public WorldDisplayer3 displayer;
 
     private void Awake()
     {

@@ -237,7 +237,14 @@ public class WorldDisplayer2 : MonoBehaviour
         if (!IsPointInBounds(point, bounds)) return false;
 
         foreach (var segment in polygon) {
+            var points = new List<Vector2>() { segment.a, segment.b };
 
+            /*
+            foreach (var point in points) {
+
+
+            }
+            */
         }
 
         return isInside;
