@@ -43,7 +43,7 @@ public static class Geometry
         return new Vector2[] { lowest, highest };
     }
 
-    public static void Move(this Polygon segments, Vector2 offset)
+    public static Polygon Move(this Polygon segments, Vector2 offset)
     {
         var newPoly = new Polygon();
         foreach (var seg in segments) {
@@ -52,10 +52,10 @@ public static class Geometry
                 b = seg.b + offset
             });
         }
-        segments = newPoly;
+        return newPoly;
     }
 
-    public static void Scale(this Polygon segments, float factor)
+    public static Polygon Scale(this Polygon segments, float factor)
     {
         var newPoly = new Polygon();
         foreach (var seg in segments) {
@@ -64,7 +64,7 @@ public static class Geometry
                 b = seg.b * factor
             });
         }
-        segments = newPoly;
+        return newPoly;
     }
 
     public static Polygon ToPolygon(this Site site)

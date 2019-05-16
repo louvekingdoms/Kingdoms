@@ -55,7 +55,7 @@ public class Ruleset : Dictionary<RULE, IRuleValue> {
     public Ruleset()
     {
         this.Add(RULE.STARTING_KINGDOMS, new RuleInt(10));
-        this.Add(RULE.MAX_STARTING_KINGDOM_STRENGTH, new RuleInt(5));
+        this.Add(RULE.MAX_STARTING_KINGDOM_STRENGTH, new RuleInt(3));
         this.Add(RULE.STARTING_POPULATION_PER_REGION, new RuleInt(200));
         this.Add(RULE.YEAR_LENGTH, new RuleInt(365));
         this.Add(RULE.LIFESPAN_MULTIPLIER, new RuleFloat(1));

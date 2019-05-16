@@ -20,6 +20,8 @@ public class Kingdom
         mainland = 0;
         mainRace = _mainRace;
         ruler = _ruler;
+
+        Logger.Debug("Kingdom " + _name + "_"+_mainRace+":"+GetHashCode()+" (ruled by "+_ruler.name+":"+_ruler.GetHashCode()+") is born");
     }
 
     ///////////////////////////////////
@@ -37,6 +39,8 @@ public class Kingdom
             {
                 region.owner.RemoveOwnership(region);
             }
+
+            Logger.Debug("Kingdom " + GetDebugSignature() + " took ownership of region " + region.GetHashCode() + (region.owner==null? "" : ". It previously belonged to " + region.owner.GetDebugSignature()));
             region.owner = this;
         }
     }
@@ -47,6 +51,7 @@ public class Kingdom
     {
         foreach (Region region in regions)
         {
+            if (territory.Contains(region)) Logger.Debug("Kingdom " + GetDebugSignature() + " lost ownership of region " + region.GetHashCode()); ;
             territory.RemoveAll(o => o == region);
         }
     }
@@ -130,8 +135,14 @@ public class Kingdom
     public void SetName(string _name)
     {
         var rnd = new System.Random(_name.GetHashCode());
-        name = _name;
         color = Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
+
+        Logger.Debug("Kingdom " + GetDebugSignature() + " is now named ["+_name+"]") ;
+        name = _name;
     }
 
+    public string GetDebugSignature()
+    {
+        return name + "_" + mainRace + ":" + GetHashCode();
+    }
 }

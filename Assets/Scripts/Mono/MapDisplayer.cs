@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using csDelaunay;
 
-public class WorldDisplayer3 : MonoBehaviour
+public class MapDisplayer : MonoBehaviour
 {
     [System.Serializable]
     private class Cell : System.Object
@@ -130,11 +130,10 @@ public class WorldDisplayer3 : MonoBehaviour
                             break;
                     }
                     if (cell.isHighlighted) displayer.SetColor(new Color(1f, 0f, 1f));
-
-                    displayer.polygon = site.ToPolygon();
-                    displayer.polygon.Move(-site.Coord.ToVector2());
-                    displayer.polygon.Scale(size * regionScale);
                     
+                    var poly = site.ToPolygon().Move(-site.Coord.ToVector2()).Scale(size * regionScale);
+
+                    displayer.polygon = poly;
                     displayer.SetAllDirty();
                 }
             }
