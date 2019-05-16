@@ -73,6 +73,7 @@ public class MapDisplayer : MonoBehaviour
         if (!displayedSites.ContainsKey(site)) {
             var g = Instantiate(displayedCellExample, regionsLayer.transform);
             var displayer = g.GetComponent<RegionDisplayer>();
+            
             displayedSites.Add(site, displayer);
             displayer.onMouseEnter += delegate { SetHovered(site, true); };
             displayer.onMouseExit += delegate { SetHovered(site, false); };
@@ -172,7 +173,6 @@ public class MapDisplayer : MonoBehaviour
 
     void CheckMousePosition(Vector2 mouseUV)
     {
-        print("Checking mouse position");
         foreach (var cell in cells) {
             var highlighted = false;
             foreach (var site in cell.region.sites) {
