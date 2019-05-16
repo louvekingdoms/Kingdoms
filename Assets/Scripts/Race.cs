@@ -12,7 +12,11 @@ public class Race
         public string name;
         public string adjective;
     }
-    
+
+    public override string ToString()
+    {
+        return "[RACE:"+name+"]";
+    }
 
     public readonly int id = 0;
 

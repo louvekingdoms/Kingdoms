@@ -15,13 +15,14 @@ public class Kingdom
 
     public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler)
     {
-        TakeOwnership(_territory);
         SetName(_name);
-        mainland = 0;
         mainRace = _mainRace;
         ruler = _ruler;
 
-        Logger.Debug("Kingdom " + _name + "_"+_mainRace+":"+GetHashCode()+" (ruled by "+_ruler.name+":"+_ruler.GetHashCode()+") is born");
+        Logger.Debug("Kingdom " + GetDebugSignature() + " (ruled by " + _ruler.name + ":" + _ruler.GetHashCode() + ") is born");
+
+        TakeOwnership(_territory);
+        mainland = 0;
     }
 
     ///////////////////////////////////
