@@ -5,8 +5,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static Geometry;
 
-public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerExitHandler
-{
+public class RegionDisplayer : MaskableGraphic { 
+
     public Polygon polygon = new Polygon();
     public Vector2 centroid = new Vector2();
     public event System.Action onMouseEnter;
@@ -56,6 +56,7 @@ public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerEx
         vert.color = this.color;  // Do not forget to set this, otherwise 
 
         vert.position = centroid;
+        vert.uv0 = new Vector2(0f, 0f);
         vh.AddVert(vert);
 
         if (polygon.Count < 3) {
@@ -64,8 +65,10 @@ public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerEx
 
         foreach (var segment in polygon) {
             vert.position = segment.a;
+            vert.uv0 = new Vector2(1f, 0f);
             vh.AddVert(vert);
             vert.position = segment.b;
+            vert.uv0 = new Vector2(1f, 0f);
             vh.AddVert(vert);
             var i = vh.currentVertCount;
             vh.AddTriangle(0, i - 2, i - 1);
@@ -87,21 +90,5 @@ public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerEx
     protected override void OnPopulateMesh(VertexHelper vh)
     {
         MakePolygon(vh, polygon, centroid);
-    }
-
-    public void OnMouseEnter()
-    {
-        print("MOUSE IS ENTERING");
-        try { onMouseEnter.Invoke(); } catch { }
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        //try { onMouseEnter.Invoke(); } catch { }
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        //try { onMouseExit.Invoke(); } catch { }
     }
 }
