@@ -53,6 +53,7 @@ public class WorldDisplayer3 : MonoBehaviour
 
     public void DrawMap(Map map)
     {
+        CheckMousePosition(GetMouseUV());   
         DrawCells(map);
     }
 
@@ -134,7 +135,73 @@ public class WorldDisplayer3 : MonoBehaviour
     {
         return new Vector2(f.x, f.y);
     }
-    
+
+    Vector2 GetMouseUV()
+    {
+        var mouse = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        var layerPos = regionsLayer.GetComponent<RectTransform>().position;
+        var layerPos2D = new Vector2(layerPos.x, layerPos.y);
+        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        var UVMouse = (mouse - layerPos2D) / size + new Vector2(0.5f, 0.5f);
+
+        return UVMouse;
+    }
+
+    void CheckMousePosition(Vector2 mouseUV)
+    {
+        foreach (var cell in cells) {
+            var highlighted = false;
+            foreach (var site in cell.region.sites) {
+                var points = PolygonPoints(ToSegments(site.Edges));
+                for (int i = 1; i < points.Count; i++) {
+                    var triangle = new List<Vector2> {
+                         points[i-1],
+                         points[i],
+                         ToVector2(site.Coord)
+                    };
+                    if (IsPointInTriangle(triangle.ToArray(), mouseUV)) {
+                        highlighted = true;
+                        break;
+                    }
+                }
+                if (highlighted) {
+                    break;
+                }
+            }
+
+            if (highlighted) {
+                if (!cell.isHighlighted) cell.MarkDirty();
+                cell.isHighlighted = true;
+            }
+            else {
+                if (cell.isHighlighted) cell.MarkDirty();
+                cell.isHighlighted = false;
+            }
+        }
+    }
+
+    bool IsPointInPolygon(List<Pencil.Segment> polygon, Vector2 point)
+    {
+        var bounds = PolygonBounds(polygon);
+
+        if (!IsPointInBounds(point, bounds)) return false;
+
+        bool isInside = false;
+        PolygonPoints(polygon);
+        return isInside;
+
+    }
+
+    List<Vector2> PolygonPoints(List<Pencil.Segment> polygon)
+    {
+        var points = new List<Vector2>();
+        foreach (var seg in polygon) {
+            points.Add(seg.a);
+            points.Add(seg.b);
+        }
+        return points;
+    }
+
     Vector2 SiteDimensions(Site site)
     {
         var bounds = PolygonBounds(SiteSegments(site));
@@ -214,5 +281,30 @@ public class WorldDisplayer3 : MonoBehaviour
         var a = ToVector2(edge.ClippedEnds[LR.LEFT]);
         var b = ToVector2(edge.ClippedEnds[LR.RIGHT]);
         return new Pencil.Segment { a = a, b = b };
+    }
+
+    bool IsPointInTriangle(Vector2[] triangle, Vector2 point)
+    {
+        for (var i = 0; i < triangle.Length; i++) {
+            var a = triangle[i];
+            var b = triangle[(i + 1) % triangle.Length];
+            var c = triangle[(i + 2) % triangle.Length];
+
+            var side = Mathf.Sign((b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x));
+            var cSide = Mathf.Sign((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
+
+            if (side != cSide) return false;
+        }
+
+        return true;
+    }
+
+    bool ApproxEquals(float a, float b, int by=100)
+    {
+        return (
+            Mathf.Round(a*by)/by 
+            ==
+            Mathf.Round(b*by)/by
+        );
     }
 }

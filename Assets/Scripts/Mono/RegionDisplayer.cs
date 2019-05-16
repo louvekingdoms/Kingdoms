@@ -70,8 +70,6 @@ public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerEx
             var i = vh.currentVertCount;
             vh.AddTriangle(0, i - 2, i - 1);
         }
-
-        //UpdateCollider(polygon);
     }
 
     void UpdateCollider(List<Segment> polygon)
