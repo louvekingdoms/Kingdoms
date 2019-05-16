@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static Pencil;
+using static Geometry;
 
 public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerExitHandler
 {
-    public List<Segment> polygon = new List<Segment>();
+    public Polygon polygon = new Polygon();
     public Vector2 centroid = new Vector2();
     public event System.Action onMouseEnter;
     public event System.Action onMouseExit;
@@ -49,7 +49,7 @@ public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerEx
         SetMaterialDirty();
     }
     
-    void MakePolygon(VertexHelper vh, List<Segment> polygon, Vector2 centroid)
+    void MakePolygon(VertexHelper vh, Polygon polygon, Vector2 centroid)
     {
         vh.Clear();
         UIVertex vert = new UIVertex();
@@ -72,7 +72,7 @@ public class RegionDisplayer : MaskableGraphic, IPointerEnterHandler, IPointerEx
         }
     }
 
-    void UpdateCollider(List<Segment> polygon)
+    void UpdateCollider(Polygon polygon)
     {
         var collider = GetComponent<PolygonCollider2D>();
         var points = new List<Vector2>();
