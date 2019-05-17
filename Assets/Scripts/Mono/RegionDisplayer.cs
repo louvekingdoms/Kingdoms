@@ -9,6 +9,7 @@ public class RegionDisplayer : MaskableGraphic {
 
     public Polygon polygon = new Polygon();
     public Vector2 centroid = new Vector2();
+    public List<Segment> nonStrokeableSegments = new List<Segment>();
     public event System.Action onMouseEnter;
     public event System.Action onMouseExit;
 
@@ -48,9 +49,11 @@ public class RegionDisplayer : MaskableGraphic {
         SetVerticesDirty();
         SetMaterialDirty();
     }
-    
+
     void MakePolygon(VertexHelper vh, Polygon polygon, Vector2 centroid)
     {
+        var polygonCorrespondance = polygon.SplitSegmentsWithCorrespondance();
+
         vh.Clear();
         UIVertex vert = new UIVertex();
         vert.color = this.color;  // Do not forget to set this, otherwise 
@@ -62,14 +65,36 @@ public class RegionDisplayer : MaskableGraphic {
         if (polygon.Count < 3) {
             return;
         }
+         
+        foreach (var segment in polygonCorrespondance.polygon) {
+            nonStrokeableSegments.Find(o => {
+                //print(o + "==" + polygonCorrespondance.table[segment]);
+                return false;
+            });
+            float y;
 
-        foreach (var segment in polygon) {
             vert.position = segment.a;
-            vert.uv0 = new Vector2(1f, 0f);
+            y = Vector2.Distance(vert.position, centroid);
+
+            vert.uv0 = new Vector2(1f, y);
+            //if (nonStrokeableSegments.Contains(polygonCorrespondance.newSegmentToOldSegment[segment])) {
+            if (polygonCorrespondance.oldSegmentToBreakingPoint[polygonCorrespondance.newSegmentToOldSegment[segment]] == segment.a
+                && nonStrokeableSegments.Contains(polygonCorrespondance.newSegmentToOldSegment[segment])) { 
+                vert.uv0 = new Vector2(0f, y);
+            }
             vh.AddVert(vert);
+
             vert.position = segment.b;
-            vert.uv0 = new Vector2(1f, 0f);
+            y = Vector2.Distance(vert.position, centroid);
+
+            vert.uv0 = new Vector2(1f, y);
+            //if (nonStrokeableSegments.Contains(polygonCorrespondance.newSegmentToOldSegment[segment])) {
+            if (polygonCorrespondance.oldSegmentToBreakingPoint[polygonCorrespondance.newSegmentToOldSegment[segment]] == segment.b
+                && nonStrokeableSegments.Contains(polygonCorrespondance.newSegmentToOldSegment[segment])) {
+                vert.uv0 = new Vector2(0f, y);
+            }
             vh.AddVert(vert);
+
             var i = vh.currentVertCount;
             vh.AddTriangle(0, i - 2, i - 1);
         }

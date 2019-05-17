@@ -5,8 +5,27 @@ using csDelaunay;
 
 public static class Geometry
 {
-    public class Segment { public Vector2 a; public Vector2 b; }
+    public class Segment {
+        public Vector2 a;
+        public Vector2 b;
+
+        public override string ToString()
+        {
+            return "("+a.ToString() + "<>" + b.ToString()+")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return (obj as Segment).a == a && (obj as Segment).b == b;
+        }
+    }
     public class Polygon : List<Segment> { }
+    public class PolygonEdgeCorrespondance
+    {
+        public Polygon polygon;
+        public Dictionary<Segment, Vector2> oldSegmentToBreakingPoint = new Dictionary<Segment, Vector2>();
+        public Dictionary<Segment, Segment> newSegmentToOldSegment = new Dictionary<Segment, Segment>();
+    }
     
     public static List<Vector2> Points(this Polygon polygon)
     {
@@ -65,6 +84,48 @@ public static class Geometry
             });
         }
         return newPoly;
+    }
+
+    public static Polygon SplitSegments(this Polygon segments)
+    {
+        var newPoly = new Polygon();
+        foreach (var seg in segments) {
+            var split = seg.Split();
+            newPoly.Add(split[0]);
+            newPoly.Add(split[1]);
+        }
+        return newPoly;
+    }
+
+    public static PolygonEdgeCorrespondance SplitSegmentsWithCorrespondance(this Polygon segments)
+    {
+        var correspondance = new PolygonEdgeCorrespondance();
+        var newPoly = new Polygon();
+        foreach (var seg in segments) {
+            var split = seg.Split();
+            newPoly.Add(split[0]);
+            newPoly.Add(split[1]);
+            correspondance.newSegmentToOldSegment.Add(split[0], seg);
+            correspondance.newSegmentToOldSegment.Add(split[1], seg);
+            correspondance.oldSegmentToBreakingPoint.Add(seg, split[0].b);
+        }
+        correspondance.polygon = newPoly;
+
+        return correspondance;
+    }
+    
+    public static Segment[] Split(this Segment segment)
+    {
+        return new Segment[] {
+            new Segment() {
+                a = segment.a,
+                b = (segment.a + segment.b) / 2f
+            },
+            new Segment() {
+                a = (segment.a + segment.b) / 2f,
+                b = segment.b
+            }
+        };
     }
 
     public static Polygon ToPolygon(this Site site)

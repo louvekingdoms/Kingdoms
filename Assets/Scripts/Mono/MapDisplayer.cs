@@ -68,11 +68,31 @@ public class MapDisplayer : MonoBehaviour
         }
     }
 
-    RegionDisplayer GetSiteDisplayer(Site site)
+    RegionDisplayer GetSiteDisplayer(Site site, Region parentRegion)
     {
         if (!displayedSites.ContainsKey(site)) {
             var g = Instantiate(displayedCellExample, regionsLayer.transform);
             var displayer = g.GetComponent<RegionDisplayer>();
+            var frontiers = parentRegion.GetFrontiers();
+            var innerPoints = frontiers.innerEdges.ToSegments().Points();
+
+            var scaledPoints = new List<Vector2>();
+
+            for (int i = 0; i < innerPoints.Count; i++) {
+                var point = innerPoints[i];
+                var size = GetMapBoxSize();
+                point -= site.Coord.ToVector2();
+                point *= size * regionScale;
+
+                scaledPoints.Add(point);
+            }
+
+            for (int i = 1; i < scaledPoints.Count; i++) {
+                displayer.nonStrokeableSegments.Add(new Geometry.Segment() {
+                    a= scaledPoints[i-1],
+                    b= scaledPoints[i]
+                });
+            }
             
             displayedSites.Add(site, displayer);
             displayer.onMouseEnter += delegate { SetHovered(site, true); };
@@ -119,7 +139,7 @@ public class MapDisplayer : MonoBehaviour
 
                 if (cell.IsDirty()) {
                     // If cell is dirty, draw again
-                    var displayer = GetSiteDisplayer(site);
+                    var displayer = GetSiteDisplayer(site, cell.region);
                     var size = GetMapBoxSize();
                     displayer.GetComponent<RectTransform>().anchoredPosition = (size) * site.Coord.ToVector2() - new Vector2(size, size) / 2f;
                     displayer.SetColor(Color.white);

@@ -99,15 +99,8 @@ Shader "UI/Stroke"
             fixed4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
-
-				if (IN.texcoord.x > 0.8) {
-					color.rgb *= 0.0;
-				}
-				else {
-					color.rgb *= 1.0;
-				}
-
-
+				color.rgb = step(IN.texcoord.x, 0.85)*color.rgb;
+				//color.rgb = IN.texcoord.y/200;
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
