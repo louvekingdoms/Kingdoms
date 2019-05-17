@@ -12,7 +12,11 @@ public class Race
         public string name;
         public string plural;
     }
-    
+
+    public override string ToString()
+    {
+        return "[RACE:"+name+"]";
+    }
 
     public readonly int id = 0;
 

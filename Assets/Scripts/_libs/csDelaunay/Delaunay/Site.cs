@@ -336,8 +336,8 @@ namespace csDelaunay {
 
 		public float Dist(ICoord p) {
 			return (this.Coord - p.Coord).magnitude;
-		}
-	}
+        }
+    }
 
 	public class BoundsCheck {
 		public const int TOP = 1;
@@ -368,5 +368,5 @@ namespace csDelaunay {
 
 			return value;
 		}
-	}
+    }
 }

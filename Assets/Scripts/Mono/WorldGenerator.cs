@@ -9,10 +9,10 @@ public class WorldGenerator : MonoBehaviour
 
     public Map.Parameters parameters;
     public World world;
-    public float refreshRate = 1f;
+    public float refreshRate = 0.25f;
     public int seed = 1;
 
-    public WorldDisplayer displayer;
+    public MapDisplayer displayer;
 
     private void Awake()
     {
@@ -62,8 +62,7 @@ public class WorldGenerator : MonoBehaviour
 
     IEnumerator RefreshDiagram()
     {
-
-        //displayer.DrawMap(world.map, Mathf.RoundToInt(parameters.resolution));
+        displayer.DrawMap(world.map);
 
         yield return new WaitForSeconds(refreshRate);
 
