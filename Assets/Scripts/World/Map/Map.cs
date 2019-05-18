@@ -13,7 +13,7 @@ public class Map
     List<Edge> edges;
     System.Random r;
 
-    public enum Frontier { DESERT, PEAKS, OCEAN};
+    public enum Frontier { DESERT, PEAKS, OCEAN, EMPIRE};
 
     [System.Serializable]
     public class Parameters
@@ -24,7 +24,6 @@ public class Map
         public int minLloydIterations = 5;
         public float mu;
         public float sigma;
-        public float resolution = 256f;
 
         public bool isGaussianRandom = true;
 
@@ -58,7 +57,7 @@ public class Map
         // Create the bounds of the voronoi diagram
         // Use Rectf instead of Rect; it's a struct just like Rect and does pretty much the same,
         // but like that it allows you to run the delaunay library outside of unity (which mean also in another tread)
-        Rectf bounds = new Rectf(0, 0, parameters.resolution, parameters.resolution);
+        Rectf bounds = new Rectf(0, 0, 1, 1);
 
         // There is a two ways you can create the voronoi diagram: with or without the lloyd relaxation
         Voronoi voronoi = new Voronoi(points, bounds, Random.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
@@ -131,6 +130,8 @@ public class Map
             regions.Add(region);
         }
 
+        Logger.Info("Generated " + regions.Count + " regions from "+ sites.Count+" sites");
+
         return regions;
     }
 
@@ -145,6 +146,9 @@ public class Map
             var y = (r.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
             var point = new Vector2f(x, y);
             points.Add(point);
+            if (point.x > 1 || point.y > 1) {
+                Logger.Warn("Warning out of bounds region : " + point);
+            }
         }
 
         return points;
@@ -157,7 +161,7 @@ public class Map
         List<Vector2f> points = new List<Vector2f>();
         for (int i = 0; i < parameters.polygonNumber; i++)
         {
-            var point = new Vector2f(Random.Range(0, parameters.resolution), Random.Range(0, parameters.resolution));
+            var point = new Vector2f(Random.Range(0, 1), Random.Range(0, 1  ));
             points.Add(point);
         }
 

@@ -23,7 +23,6 @@ public class World
         for (int i = 0; i < amount; i++)
         {
             List<Region> territory = new List<Region>();
-
             int size = 1+Mathf.FloorToInt((1 - Mathf.Clamp01(Mathf.Abs((float)r.NextGaussian()))) * maxSize) ;
             Region startingRegion = map.regions[Mathf.FloorToInt(Random.value * map.regions.Count)];
 
