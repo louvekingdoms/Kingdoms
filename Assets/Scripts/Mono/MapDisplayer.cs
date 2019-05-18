@@ -95,8 +95,6 @@ public class MapDisplayer : MonoBehaviour
             }
             
             displayedSites.Add(site, displayer);
-            displayer.onMouseEnter += delegate { SetHovered(site, true); };
-            displayer.onMouseExit += delegate { SetHovered(site, false); };
         }
         return displayedSites[site];
     }

@@ -48,22 +48,17 @@ public class Character
     }
 
     public class Name {
-        string firstName;
-        string lastName;
-        string nameFormat = "{0} {1}";
-        string preTitle = "";
+        public string firstName;
+        public string lastName;
+        public string preTitle = "";
         string postTitle = "";
+        string nameFormat = "{0} {1}";
 
         public Name(string firstName, string lastName, Race race)
         {
             this.firstName = firstName;
             this.lastName = lastName;
             this.nameFormat = race.characterNameFormat;
-        }
-
-        public void SetPreTitle(string preTitle)
-        {
-            this.preTitle = preTitle;
         }
 
         public void SetPostTitle(string postTitle)
@@ -79,6 +74,11 @@ public class Character
         public string GetShortName()
         {
             return string.Format(nameFormat, firstName, lastName);
+        }
+
+        public string GetPreTitle()
+        {
+            return string.Format(preTitle, "");
         }
 
         public override string ToString()

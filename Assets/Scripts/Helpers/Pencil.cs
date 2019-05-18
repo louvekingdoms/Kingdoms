@@ -98,6 +98,7 @@ public static class Pencil
                 uv.CheckValue(new Vector2(width, height) * unit);
             }
             catch (OutOfUVException e) {
+                Logger.Debug("This error can be safely ignored. " + e.Message);
                 continue;
             }
             var left = uv.x - (width / 2) * unit.x;

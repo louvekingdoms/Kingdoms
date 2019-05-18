@@ -10,7 +10,9 @@ public class RulerCreationWizard : MonoBehaviour
     public GameObject row;
     public Transform parentRow;
     public Gradient valueGradient;
-    public TMP_InputField rulerName;
+    public TextMeshProUGUI rulerPrefix;
+    public TMP_InputField rulerFirstName;
+    public TMP_InputField rulerFamilyName;
     public TMP_Dropdown raceDropdown;
     public TextMeshProUGUI stockDisplayer;
     public TextMeshProUGUI ageDisplayer;
@@ -49,9 +51,9 @@ public class RulerCreationWizard : MonoBehaviour
                 var libRace = Library.races[id];
                 if (libRace.name == raceName)
                 {
-                    // FIXME
-                    //var newRuler = new Ruler() {name=name, race};
-                    UpdatePersonalDisplay();
+                    var newRuler = new Ruler() { name = ruler.name };
+                    ruler = newRuler;
+                    UpdateDisplay();
                     return;
                 }
             }
@@ -61,9 +63,13 @@ public class RulerCreationWizard : MonoBehaviour
     void CreateCharacteristics()
     {
         // Update name
-        rulerName.onValueChanged.AddListener((x) => { 
-            // FIXME
-            // ruler.name = x; 
+        rulerFirstName.onValueChanged.AddListener((x) => {
+            ruler.name.firstName = x;
+            UpdateNames();
+        });
+        rulerFamilyName.onValueChanged.AddListener((x) => {
+            ruler.name.lastName = x;
+            UpdateNames();
         });
 
         // Display each characteristic
@@ -147,13 +153,19 @@ public class RulerCreationWizard : MonoBehaviour
         UpdateCharacteristics();
         UpdateStockDisplay();
         UpdatePersonalDisplay();
-        rulerName.text = ruler.name.GetFullName();
+        UpdateNames();
+    }
+
+    void UpdateNames()
+    {
+        rulerFirstName.text = ruler.name.firstName;
+        rulerFamilyName.text = ruler.name.lastName;
+        rulerPrefix.text = ruler.name.GetPreTitle();
     }
 
     void UpdatePersonalDisplay()
     {
         ageDisplayer.text = ruler.age.ToString();
-
     }
 
     void IncreaseAge()

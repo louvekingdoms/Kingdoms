@@ -56,6 +56,11 @@ public static class Interpreter
         }
     }
 
+    static void print(object a) { Debug.Log(a); }
+    static void echo(object a) { print(a); }
+    static void show_debug_message(object a) { print(a); }
+    static void log(object a) { print(a); }
+
     static string Sanitize(this string chunk)
     {
         Regex regex = new Regex("[ ](?=[^"+ litteralStringMarkers[1]+ "]*?(?:"+ litteralStringMarkers[0]+ "|$))");
@@ -222,8 +227,8 @@ public static class Interpreter
 
     class CharacteristicDefinitionRuleParameters
     {
-        public Ruler.Characteristic concernedCharacteristic;
-        public Ruler.Characteristics rulerCharacteristics;
+        public Character.Characteristic concernedCharacteristic;
+        public Character.Characteristics rulerCharacteristics;
         public Context arguments = new Context();
         public int change = 0;
     }
@@ -273,8 +278,9 @@ public static class Interpreter
         new NamedAction<CCDRAndCharaName>("IS_BAD", (rulesAndChara, content) => { rulesAndChara.rules.isBad = StringToBool(content); }),
         new NamedAction<CCDRAndCharaName>("IS_FROZEN", (rulesAndChara, content) => { rulesAndChara.rules.isFrozen = StringToBool(content); }),
         new NamedAction<CCDRAndCharaName>("ON_CHANGE", (rulesAndChara, content) => {
+            var deleg = ReadCharacteristicDefinitionRule(content, rulesAndChara.name);
             rulesAndChara.rules.onChange += (Character.Characteristics charaSet, int change) => {
-                ReadCharacteristicDefinitionRule(content, rulesAndChara.name).Invoke(charaSet, change);
+                deleg.Invoke(charaSet, change);
             };
         })
     );
@@ -361,7 +367,7 @@ public static class Interpreter
     // RULES:[xx], MIN:xx, MAX:xx
     static Character.CharacteristicDefinition ReadCharacteristicDefinition (string definition, string charName)
     {
-        var defAndName = new CCDAndCharaName();
+        var defAndName = new CCDAndCharaName() { name = charName };
         definition.LoadRelations(characteristicDefinitionElements, defAndName);
         return defAndName.def;
     }
@@ -369,7 +375,7 @@ public static class Interpreter
     // RULES:[ON_OVER_HALF: xx(xxx), ON_CHANGE: xx(xxx)]
     static Character.CharacteristicDefinition.Rules ReadCharacteristicDefinitionRules (string chunk, string charName)
     {
-        var def = new CCDRAndCharaName();
+        var def = new CCDRAndCharaName() { name = charName };
         chunk.LoadRelations(characteristicDefinitionRulesElements, def);
         return def.rules;
     }

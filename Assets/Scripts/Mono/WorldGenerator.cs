@@ -43,7 +43,7 @@ public class WorldGenerator : MonoBehaviour
 
     IEnumerator RefreshDiagram()
     {
-        displayer.DrawMap(world.map);
+        if (displayer!= null && displayer.enabled && displayer.gameObject.activeSelf) displayer.DrawMap(world.map);
 
         yield return new WaitForSeconds(refreshRate);
 

@@ -10,8 +10,6 @@ public class RegionDisplayer : MaskableGraphic {
     public Polygon polygon = new Polygon();
     public Vector2 centroid = new Vector2();
     public List<Segment> nonStrokeableSegments = new List<Segment>();
-    public event System.Action onMouseEnter;
-    public event System.Action onMouseExit;
 
     [SerializeField]
     Texture m_Texture;
