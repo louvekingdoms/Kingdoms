@@ -49,6 +49,7 @@ public class MapDisplayer : MonoBehaviour
     [Range(0.75f, 1f)] public float regionScale = 0.9f;
 
     List<Cell> cells = new List<Cell>();
+    Region selectedRegion;
     Dictionary<Site, RegionDisplayer> displayedSites = new Dictionary<Site, RegionDisplayer>();
 
     public void DrawMap(Map map)
@@ -148,7 +149,7 @@ public class MapDisplayer : MonoBehaviour
                             }
                             break;
                     }
-                    if (cell.isHighlighted) displayer.SetColor(new Color(1f, 0f, 1f));
+                    if (cell.isHighlighted)  displayer.SetColor(new Color(1f, 0f, 1f));
                     
                     var poly = site.ToPolygon().Move(-site.Coord.ToVector2()).Scale(size * regionScale);
 
@@ -214,11 +215,19 @@ public class MapDisplayer : MonoBehaviour
             if (highlighted) {
                 if (!cell.isHighlighted) cell.MarkDirty();
                 cell.isHighlighted = true;
+                if (Input.GetMouseButtonDown(0)) {
+                    selectedRegion = cell.region;
+                }
             }
             else {
                 if (cell.isHighlighted) cell.MarkDirty();
                 cell.isHighlighted = false;
             }
         }
+    }
+
+    public Region GetSelectedRegion()
+    {
+        return selectedRegion;
     }
 }
