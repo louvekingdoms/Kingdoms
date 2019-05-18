@@ -1,0 +1,24 @@
+RESOURCES:[
+    threat: [MIN:-10, MAX:10],
+    structure: [MIN:-10, MAX:10],
+    wealth: [
+        MIN:0, 
+        MAX:999, 
+        RULES:[
+            ON_NEW_MONTH:[
+                INCREASE(AMOUNT:GET_TOTAL_AVAILABLE_REGIONS_WEALTH()),
+                DECREASE(AMOUNT:GET_TOTAL_ARMY_COST())
+            ]
+        ]
+    ],
+    reputation: [MIN:-10, MAX:10, 
+        RULES:[
+            ON_NEW_MONTH:[
+                INCREASE(AMOUNT:1),
+                INCREASE(AMOUNT:RESOURCE(RSC:wealth))
+            ]
+        ]
+    ],
+    morale: [MIN:-10, MAX:10],
+    impact: [MIN:0, MAX:999]
+]
