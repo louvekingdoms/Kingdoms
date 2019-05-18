@@ -1,7 +1,6 @@
 ﻿using csDelaunay;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Kingdom
 {
@@ -11,7 +10,7 @@ public class Kingdom
     public int mainland;
     public string name;
     public string demonym;
-    public Color color;
+    public UnityEngine.Color color;
     public Ruler ruler;
 
     public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
@@ -115,7 +114,7 @@ public class Kingdom
         return territory[index];
     }
 
-    public Color GetColor()
+    public UnityEngine.Color GetColor()
     {
         return color;
     }
@@ -139,11 +138,66 @@ public class Kingdom
     public void SetName(string _name)
     {
         var rnd = new System.Random(_name.GetHashCode());
-        color = Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
 
         Logger.Debug("Kingdom " + GetDebugSignature() + " is now named ["+_name+"]") ;
         name = _name;
+        color = UnityEngine.Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
     }
+
+
+    // Varying characteristic
+    public class Resource
+    {
+        int value;
+        public readonly ResourceDefinition definition;
+
+        public Resource(ResourceDefinition _definition)
+        {
+            definition = _definition;
+            value = definition.min;
+        }
+
+        public void Increase(Resources otherChars, int amount = 1)
+        {
+            var oldVal = value;
+            value = UnityEngine.Mathf.Clamp(value + amount, definition.min, definition.max);
+        }
+
+        public void Decrease(Resources otherChars, int amount = 1)
+        {
+            var oldVal = value;
+            value = UnityEngine.Mathf.Clamp(value - amount, definition.min, definition.max);
+        }
+
+        public void SetRaw(int val)
+        {
+            value = val;
+        }
+
+        public int GetValue()
+        {
+            return value;
+        }
+
+        public int GetClampedValue()
+        {
+            return UnityEngine.Mathf.Clamp(value, definition.min, definition.max);
+        }
+    }
+
+    // "set-in-stone" definition, rules, chara behavior
+    public class ResourceDefinition
+    {
+        public int min = 0;
+        public int max = 99;
+    }
+
+    // static set of varying characteristics
+    public class Resources : Dictionary<string, Resource> { }
+
+    // static definitions set
+    public class ResourceDefinitions : Dictionary<string, ResourceDefinition> { }
+
 
     public string GetDebugSignature()
     {
