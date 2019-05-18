@@ -40,12 +40,12 @@ public class Library
 
         //////////////////////
         ///
-        ///     META INFO LOADING
+        ///     META AND CULTURAL INFO LOADING
         ///
         try
         {
-            var meta = JsonUtility.FromJson(Disk.ReadAllText(Paths.RaceMetafile(raceFolderName)), typeof(Race.Info)) as Race.Info;
-            race = new Race(meta.id, meta.name, meta.plural);
+            var meta = Disk.ReadAllText(Paths.RaceMetafile(raceFolderName));
+            race = Interpreter.ReadRaceInfo(meta);
             races.Add(race.id, race);
         }
         catch (System.Exception e)
@@ -60,8 +60,8 @@ public class Library
         ///
         try
         {
-            race.kingdomNames = new List<string>(Disk.ReadAllLines(Paths.RaceKingdomNames(raceFolderName)));
-            race.rulerNames = new List<string>(Disk.ReadAllLines(Paths.RaceRulerNames(raceFolderName)));
+            race = Interpreter.LoadRaceNames(race, Disk.ReadAllText(Paths.RaceKingdomNames(raceFolderName)));
+            race = Interpreter.LoadRaceNames(race, Disk.ReadAllText(Paths.RaceCharacterNames(raceFolderName)));
         }
         catch(System.Exception e)
         {

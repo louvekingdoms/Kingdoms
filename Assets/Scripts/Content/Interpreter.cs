@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Globalization;
@@ -13,15 +14,17 @@ public static class Interpreter
     static char separator = ',';
     static char[] ensembleMarkers = new char[] { '[', ']' };
     static char[] functionMarkers = new char[] { '(', ')' };
+    static string[] litteralStringMarkers = new string[] { "<<", ">>"};
     #endregion
 
     #region UTILITIES
     class UnsolvedDepthException : Exception { public UnsolvedDepthException(string message) : base(message) { } };
     class InvalidRelationException : Exception { public InvalidRelationException(string message) : base(message) { } };
-    class UnknownFunctionException : Exception { public UnknownFunctionException(string message, List<string> cmdList) : base(message+"\nAvailable functions:"+ string.Join("\n", cmdList)) { } };
+    class UnknownFunctionException : Exception { public UnknownFunctionException(string message, List<string> cmdList) : base(message + "\nAvailable functions:" + string.Join("\n", cmdList)) { } };
+    class UnknownKeyException : Exception { public UnknownKeyException(string message, List<string> cmdList) : base(message + "\nAvailable keys:" + string.Join("\n", cmdList)) { } };
     class InvalidBoolException : Exception { public InvalidBoolException(string message) : base(message) { } };
 
-    class Context : Dictionary<string, string> {}
+    class Context : Dictionary<string, string> { }
     class Relation
     {
         public string key;
@@ -33,9 +36,30 @@ public static class Interpreter
         }
     }
 
+    class NamedAction<T>
+    {
+        public string key;
+        public Action<T, string> effect;
+        public NamedAction(string key, Action<T, string> effect)
+        {
+            this.key = key;
+            this.effect = effect;
+        }
+    }
+
+    class ActionTable<T> : Dictionary<string, Action<T, string>> {
+        public ActionTable(params NamedAction<T>[] actions)
+        {
+            foreach(var action in actions) {
+                Add(action.key, action.effect);
+            }
+        }
+    }
+
     static string Sanitize(this string chunk)
     {
-        return chunk.Replace(" ", "").Replace("\n", "").Replace("\r", "") ;
+        Regex regex = new Regex("[ ](?=[^"+ litteralStringMarkers[1]+ "]*?(?:"+ litteralStringMarkers[0]+ "|$))");
+        return regex.Replace(chunk, "").Replace("\n", "").Replace("\r", "") ;
     }
 
     static string Truncate(this string ensemble)
@@ -43,7 +67,7 @@ public static class Interpreter
         return ensemble.Substring(1, ensemble.Length - 2);
     }
 
-    static Relation SeparateRelation(string chunk)
+    static Relation SeparateRelation(this string chunk)
     {
         int index = 0;
         foreach (char chr in chunk)
@@ -62,7 +86,7 @@ public static class Interpreter
         throw new InvalidRelationException(chunk); 
     }
 
-    static Relation SeparateFunctionCall(string chunk)
+    static Relation SeparateFunctionCall(this string chunk)
     {
         int index = 0;
         int start = 0;
@@ -88,8 +112,6 @@ public static class Interpreter
         var key = chunk.Substring(0, start);
         var content = chunk.Substring(start + 1, chunk.Length - (start + 2));
         return new Relation(key, content);
-        /*
-            */
     }
     
     static Context ReadContext(this string chunk)
@@ -156,6 +178,42 @@ public static class Interpreter
         }
         return chunks;
     }
+
+    static void LoadRelations<T>(this string chunk, ActionTable<T> actionTable, T subject)
+    {
+        var chunks = chunk.Sanitize().ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers });
+        foreach (var definition in chunks) {
+            var relation = SeparateRelation(definition);
+            var key = relation.key.ToUpper();
+            if (!actionTable.ContainsKey(key)) { throw new UnknownKeyException(key, actionTable.Keys.ToList()); }
+            actionTable[key].Invoke(subject, relation.content);
+        }
+    }
+
+    static bool StringToBool(string chunk)
+    {
+        switch (chunk.ToUpper()) {
+            case "YES":
+            case "TRUE":
+            case "1":
+                return true;
+
+            case "NO":
+            case "FALSE":
+            case "0":
+                return false;
+        }
+        throw new InvalidBoolException(chunk + " is not a valid bool");
+    }
+
+    static string ReadLitteralString(string chunk)
+    {
+        foreach (char character in litteralStringMarkers[0]) {
+            chunk = chunk.Truncate();
+        }
+        return chunk;
+    }
+
     #endregion
 
     #region COMMANDS
@@ -200,118 +258,124 @@ public static class Interpreter
         }
     };
 
-    #endregion
+
+    static ActionTable<Ruler.CreationRules> rulerCreationRulesElements = new ActionTable<Ruler.CreationRules>(
+        new NamedAction<Ruler.CreationRules>("CHARACTERISTICS", (rules, content) => { rules.characteristicDefinitions = ReadCharacteristicDefinitions(content); }),
+        new NamedAction<Ruler.CreationRules>("STOCK", (rules, content) => { rules.stock = Convert.ToInt32(content); }),
+        new NamedAction<Ruler.CreationRules>("MAJORITY", (rules, content) => { rules.majority = Convert.ToInt32(content); }),
+        new NamedAction<Ruler.CreationRules>("BASE_LIFESPAN", (rules, content) => { rules.maximumLifespan = Convert.ToInt32(content); }),
+        new NamedAction<Ruler.CreationRules>("LIFESPAN_TO_STOCK_RATIO", (rules, content) => { rules.lifespanToStockRatio = Convert.ToSingle(content, CultureInfo.InvariantCulture); }),
+        new NamedAction<Ruler.CreationRules>("MAX_STARTING_AGE", (rules, content) => { rules.maxStartingAge = Convert.ToInt32(content); })
+    );
+
+    class CCDRAndCharaName { public Character.CharacteristicDefinition.Rules rules = new Character.CharacteristicDefinition.Rules(); public string name; }
+    static ActionTable<CCDRAndCharaName> characteristicDefinitionRulesElements = new ActionTable<CCDRAndCharaName>(
+        new NamedAction<CCDRAndCharaName>("IS_BAD", (rulesAndChara, content) => { rulesAndChara.rules.isBad = StringToBool(content); }),
+        new NamedAction<CCDRAndCharaName>("IS_FROZEN", (rulesAndChara, content) => { rulesAndChara.rules.isFrozen = StringToBool(content); }),
+        new NamedAction<CCDRAndCharaName>("ON_CHANGE", (rulesAndChara, content) => {
+            rulesAndChara.rules.onChange += (Character.Characteristics charaSet, int change) => {
+                ReadCharacteristicDefinitionRule(content, rulesAndChara.name).Invoke(charaSet, change);
+            };
+        })
+    );
+
+    class CCDAndCharaName { public Character.CharacteristicDefinition def = new Character.CharacteristicDefinition(); public string name; }
+    static ActionTable<CCDAndCharaName> characteristicDefinitionElements = new ActionTable<CCDAndCharaName>(
+        new NamedAction<CCDAndCharaName>("MIN", (defAndChara, content) => { defAndChara.def.min = Convert.ToInt32(content); }),
+        new NamedAction<CCDAndCharaName>("MAX", (defAndChara, content) => { defAndChara.def.max = Convert.ToInt32(content); }),
+        new NamedAction<CCDAndCharaName>("COST", (defAndChara, content) => { defAndChara.def.cost = Convert.ToInt32(content); }),
+        new NamedAction<CCDAndCharaName>("RULES", (defAndChara, content) => { defAndChara.def.rules = ReadCharacteristicDefinitionRules(content.Truncate(), defAndChara.name); })
+    );
 
     #endregion
+
+    #region RACE INFO
+
+    static ActionTable<Race> raceInfoElements = new ActionTable<Race>(
+        new NamedAction<Race>("ID", (race, content) => { race.id = Convert.ToInt32(content); }),
+        new NamedAction<Race>("NAME", (race, content) => { race.name = content; }),
+        new NamedAction<Race>("CHARACTER_NAME_FORMAT", (race, content) => { race.characterNameFormat = ReadLitteralString(content); }),
+        new NamedAction<Race>("PLURAL", (race, content) => { race.plural = content; }),
+        new NamedAction<Race>("IS_PLAYABLE", (race, content) => { race.isPlayable = StringToBool(content); }),
+        new NamedAction<Race>("RULER_TITLE", (race, content) => { race.rulerTitle = content; })
+    );
+
+    static ActionTable<Race> raceNamesElements = new ActionTable<Race>(
+        new NamedAction<Race>("FIRST_NAMES", (race, content) => { race.names.first = content.Truncate().Split(separator).ToList(); }),
+        new NamedAction<Race>("FAMILY_NAMES", (race, content) => { race.names.family = content.Truncate().Split(separator).ToList(); }),
+        new NamedAction<Race>("KINGDOM_NAMES", (race, content) => { race.names.kingdoms = content.Truncate().Split(separator).ToList(); })
+    );
+    
+    #endregion    
+
+    #endregion
+
+    static Dictionary<string, List<string>> ReadDataLists(string chunk)
+    {
+        var dataTable = new Dictionary<string, List<string>>();
+        var list = new List<string>();
+        var data = chunk.Sanitize().ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers });
+        foreach (var category in data) {
+            var relation = category.SeparateRelation();
+            dataTable.Add(relation.key, relation.content.Truncate().Split(separator).ToList());
+        }
+
+        return dataTable;
+    }
+
+    public static Race LoadRaceNames(Race race, string chunk)
+    {
+        var data = ReadDataLists(chunk);
+        LoadRelations(chunk, raceNamesElements, race);
+        return race;
+
+    }
+
+    public static Race ReadRaceInfo(string raceInfo)
+    {
+        var race = new Race();
+        raceInfo.LoadRelations(raceInfoElements, race);
+        return race;
+    }
 
     public static Ruler.CreationRules ReadRulerCreationRules(string creationRules)
     {
         var rules = new Ruler.CreationRules();
-        string chunk = Sanitize(creationRules);
-        var chunks = ExplodeChunk(chunk, new char[][] { ensembleMarkers, functionMarkers });
-        
-        foreach (var definition in chunks) {
-            var relation = SeparateRelation(definition);
-            switch (relation.key)
-            {
-                case "CHARACTERISTICS":
-                    rules.characteristicDefinitions = ReadCharacteristicDefinitions(relation.content);
-                    break;
-                case "STOCK": rules.stock = Convert.ToInt32(relation.content); break;
-                case "MAJORITY": rules.majority = Convert.ToInt32(relation.content); break;
-                case "BASE_LIFESPAN": rules.maximumLifespan = Convert.ToInt32(relation.content); break;
-                case "LIFESPAN_TO_STOCK_RATIO": rules.lifespanToStockRatio = Convert.ToSingle(relation.content, CultureInfo.InvariantCulture); break;
-                case "MAX_STARTING_AGE": rules.maxStartingAge = Convert.ToInt32(relation.content); break;
-            }
-        }
-
+        creationRules.LoadRelations(rulerCreationRulesElements, rules);
         return rules;
     }
 
     // charisma: [xxxx], martial [xxxxx]
-    static Ruler.CharacteristicDefinitions ReadCharacteristicDefinitions(string definitionsChunk)
+    static Character.CharacteristicDefinitions ReadCharacteristicDefinitions(string definitionsChunk)
     {
-        var definitions = new Ruler.CharacteristicDefinitions();
+        var definitions = new Character.CharacteristicDefinitions();
         var saneChunk = definitionsChunk.Truncate();
-        foreach (var chunk in ExplodeChunk(saneChunk, new char[][] { ensembleMarkers, functionMarkers }))
+        foreach (var chunk in saneChunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers }))
         {
             var relation = SeparateRelation(chunk);
-            definitions.Add(relation.key, ReadCharacteristicDefinition(relation.content, relation.key));
+            definitions.Add(relation.key, ReadCharacteristicDefinition(relation.content.Truncate(), relation.key));
         }
         return definitions;
     }
 
-    // [RULES:[xx], MIN:xx, MAX:xx]
-    static Ruler.CharacteristicDefinition ReadCharacteristicDefinition (string definition, string charName)
+    // RULES:[xx], MIN:xx, MAX:xx
+    static Character.CharacteristicDefinition ReadCharacteristicDefinition (string definition, string charName)
     {
-        var def = new Ruler.CharacteristicDefinition();
-        var saneChunk = definition.Truncate();
-        var exploded = ExplodeChunk(saneChunk, new char[][] { ensembleMarkers, functionMarkers });
-        foreach (var setting in exploded) {
-            var relation = SeparateRelation(setting);
-            switch (relation.key.ToUpper()) {
-
-                case "MIN": def.min = Convert.ToInt32(relation.content); break;
-
-                case "MAX": def.max = Convert.ToInt32(relation.content); break;
-
-                case "COST": def.cost = Convert.ToInt32(relation.content); break;
-
-                case "RULES":
-                    def.rules = ReadCharacteristicDefinitionRules(relation.content, charName);
-                    break;
-
-            }
-        }
-
-        return def;
-    }
-
-    static bool StringToBool(string chunk)
-    {
-        switch (chunk.ToUpper())
-        {
-            case "YES":
-            case "TRUE":
-            case "1":
-                return true;
-
-            case "NO":
-            case "FALSE":
-            case "0":
-                return false;
-        }
-        throw new InvalidBoolException(chunk + " is not a valid bool");
+        var defAndName = new CCDAndCharaName();
+        definition.LoadRelations(characteristicDefinitionElements, defAndName);
+        return defAndName.def;
     }
 
     // RULES:[ON_OVER_HALF: xx(xxx), ON_CHANGE: xx(xxx)]
-    static Ruler.CharacteristicDefinition.Rules ReadCharacteristicDefinitionRules (string chunk, string charName)
+    static Character.CharacteristicDefinition.Rules ReadCharacteristicDefinitionRules (string chunk, string charName)
     {
-        var rules = new Ruler.CharacteristicDefinition.Rules();
-        var exploded = ExplodeChunk(chunk.Truncate(), new char[][] { ensembleMarkers, functionMarkers });
-        foreach (var setting in exploded)
-        {
-            var relation = SeparateRelation(setting);
-            switch (relation.key.ToUpper()){
-                case "ON_CHANGE": rules.onChange += (Ruler.Characteristics charaSet, int change) => {
-                    ReadCharacteristicDefinitionRule(relation.content, charName).Invoke(charaSet, change);
-                }; break;
-
-                case "IS_BAD":
-                    rules.isBad = StringToBool(relation.content);
-                    break;
-
-                case "IS_FROZEN":
-                    rules.isFrozen = StringToBool(relation.content);
-                    break;
-            }
-        }
-        
-        return rules;
+        var def = new CCDRAndCharaName();
+        chunk.LoadRelations(characteristicDefinitionRulesElements, def);
+        return def.rules;
     }
 
     // xx(a:b)
-    static Action<Ruler.Characteristics, int> ReadCharacteristicDefinitionRule(string chunk, string charName)
+    static Action<Character.Characteristics, int> ReadCharacteristicDefinitionRule(string chunk, string charName)
     {
         var relation = SeparateFunctionCall(chunk);
         if (!characteristicDefinitionsRules.ContainsKey(relation.key))
@@ -319,7 +383,7 @@ public static class Interpreter
             throw new UnknownFunctionException(relation.key, characteristicDefinitionsRules.Keys.ToList());
         }
 
-        return (Ruler.Characteristics set, int change) => {
+        return (Character.Characteristics set, int change) => {
             characteristicDefinitionsRules[relation.key].Invoke(
                 new CharacteristicDefinitionRuleParameters()
                 {

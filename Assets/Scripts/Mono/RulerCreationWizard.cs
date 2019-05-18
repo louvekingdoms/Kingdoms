@@ -49,7 +49,8 @@ public class RulerCreationWizard : MonoBehaviour
                 var libRace = Library.races[id];
                 if (libRace.name == raceName)
                 {
-                    var newRuler = new Ruler(ruler.name, ruler.race);
+                    // FIXME
+                    //var newRuler = new Ruler() {name=name, race};
                     UpdatePersonalDisplay();
                     return;
                 }
@@ -60,7 +61,10 @@ public class RulerCreationWizard : MonoBehaviour
     void CreateCharacteristics()
     {
         // Update name
-        rulerName.onValueChanged.AddListener((x) => { ruler.name = x; });
+        rulerName.onValueChanged.AddListener((x) => { 
+            // FIXME
+            // ruler.name = x; 
+        });
 
         // Display each characteristic
         foreach (var charaName in ruler.characteristics.Keys)
@@ -143,7 +147,7 @@ public class RulerCreationWizard : MonoBehaviour
         UpdateCharacteristics();
         UpdateStockDisplay();
         UpdatePersonalDisplay();
-        rulerName.text = ruler.name;
+        rulerName.text = ruler.name.GetFullName();
     }
 
     void UpdatePersonalDisplay()

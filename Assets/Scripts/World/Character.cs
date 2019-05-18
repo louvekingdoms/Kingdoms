@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Character
 {
-    public enum TYPE { HERO, RULER };
     public readonly Race race;
     public Characteristics characteristics;
     public Name name;
@@ -24,13 +23,15 @@ public class Character
 
     public Character()
     {
-        race = Library.races[Library.races.Keys.ToArray()[Random.Range(0, Library.races.Keys.Count - 1)]];
+        race = Library.races[Library.races.Keys.ToList().RandomElement()];
         
         birthDate = Random.Range(1, Rules.set[RULE.YEAR_LENGTH].GetInt());
         age = Random.Range(
             race.rulerCreationRules.majority,
             Mathf.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)
         );
+
+        name = race.GetRandomCharacterName();
 
         LoadCharacteristicsDefinitions();
     }
@@ -57,7 +58,7 @@ public class Character
         {
             this.firstName = firstName;
             this.lastName = lastName;
-            this.nameFormat = race.nameFormat;
+            this.nameFormat = race.characterNameFormat;
         }
 
         public void SetPreTitle(string preTitle)
@@ -78,6 +79,11 @@ public class Character
         public string GetShortName()
         {
             return string.Format(nameFormat, firstName, lastName);
+        }
+
+        public override string ToString()
+        {
+            return "[NAME:"+GetShortName()+"]";
         }
     }
 

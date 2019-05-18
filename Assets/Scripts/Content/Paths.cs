@@ -8,14 +8,14 @@ public class Paths
     static readonly string basePath = Application.streamingAssetsPath;
     static readonly string racesPath = basePath+"/Races";
     static readonly string kingdomPath = "Kingdom";
-    static readonly string rulerPath = "Ruler";
+    static readonly string characterPath = "Character";
 
     // FILES
     static readonly string logFile = "kingdoms.log";
     static readonly string namesFile = "Names.txt";
-    static readonly string creationRules = "CreationRules.txt";
+    static readonly string rulerCreationRules = "RulerCreationRules.txt";
     static readonly string gameRules = "GameRules.txt";
-    static readonly string metafile = "Info.json";
+    static readonly string metafile = "Info.txt";
 
     // ACCESS
     public static string Races()
@@ -35,13 +35,13 @@ public class Paths
     {
         return RaceNames(raceFolderName) + "/" + kingdomPath + "/" + namesFile;
     }
-    public static string RaceRulerNames(string raceFolderName)
+    public static string RaceCharacterNames(string raceFolderName)
     {
-        return RaceNames(raceFolderName) + "/" + rulerPath + "/" + namesFile;
+        return RaceNames(raceFolderName) + "/" + characterPath + "/" + namesFile;
     }
     public static string RaceRulerCreationRules(string raceFolderName)
     {
-        return RaceNames(raceFolderName) + "/" + rulerPath + "/" + creationRules;
+        return RaceNames(raceFolderName) + "/" + characterPath + "/" + rulerCreationRules;
     }
     public static string RaceKingdomGameRules(string raceFolderName)
     {

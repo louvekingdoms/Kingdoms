@@ -5,52 +5,30 @@ using UnityEngine;
 [System.Serializable]
 public class Race
 {
-    // Used for disk operations
-    public class Info
-    {
-        public int id;
-        public string name;
-        public string plural;
-    }
-
     public override string ToString()
     {
         return "[RACE:"+name+"]";
     }
 
-    public readonly int id = 0;
-
-    public string name = "Default";
+    public int id = 0;
+    public string name;
     public string plural = "{0}s";
-    public string nameFormat = "{0} {1}";
+    public string characterNameFormat = "{0} {1}";
+    public string rulerTitle;
+    public bool isPlayable = true;
     public Ruler.CreationRules rulerCreationRules;
-
-    public List<string> kingdomNames = new List<string>() { "DefaultKingdom" };
-    public List<string> rulerNames = new List<string>() { "DefaultRuler" };
-
-    public Race(int _id, string _name, string _adjective)
-    {
-        id = _id;
-        name = _name;
-        plural = _adjective;
-    }
-
-    public Race(int _id, string _name, string _adjective, Ruler.CreationRules _rulerCreationRules)
-    {
-        id = _id;
-        name = _name;
-        plural = _adjective;
-        rulerCreationRules = _rulerCreationRules;
-    }
-
+    public Names names = new Names();
+    
     public string GetRandomKingdomName()
     {
-        return kingdomNames[Random.Range(0, kingdomNames.Count)];
+        return names.kingdoms.RandomElement();
     }
 
-    public string GetRandomRulerName()
+    public Character.Name GetRandomCharacterName()
     {
-        return rulerNames[Random.Range(0, rulerNames.Count)];
+        var first = names.first.RandomElement();
+        var family = names.family.RandomElement();
+        return new Character.Name(first, family, this);
     }
 
     public string GetRandomHeroName()
@@ -58,4 +36,11 @@ public class Race
         //FIXME
         return string.Empty;
     }
+
+    public class Names {
+        public List<string> kingdoms = new List<string>();
+        public List<string> first = new List<string>();
+        public List<string> family = new List<string>();
+    }
+
 }
