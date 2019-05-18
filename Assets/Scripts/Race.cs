@@ -22,6 +22,7 @@ public class Race
 
     public string name = "Default";
     public string plural = "{0}s";
+    public string nameFormat = "{0} {1}";
     public Ruler.CreationRules rulerCreationRules;
 
     public List<string> kingdomNames = new List<string>() { "DefaultKingdom" };
@@ -50,5 +51,11 @@ public class Race
     public string GetRandomRulerName()
     {
         return rulerNames[Random.Range(0, rulerNames.Count)];
+    }
+
+    public string GetRandomHeroName()
+    {
+        //FIXME
+        return string.Empty;
     }
 }
