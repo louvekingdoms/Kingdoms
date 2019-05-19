@@ -26,7 +26,7 @@ public class RulerCreationWizard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ruler = new Ruler();
+        ruler = Ruler.CreateRuler();
         stock = ruler.race.rulerCreationRules.stock;
         CreateCharacteristics();
         CreateRaces();
@@ -51,7 +51,8 @@ public class RulerCreationWizard : MonoBehaviour
                 var libRace = Library.races[id];
                 if (libRace.name == raceName)
                 {
-                    var newRuler = new Ruler() { name = ruler.name };
+                    var newRuler = Ruler.CreateRuler();
+                    newRuler.name = ruler.name;
                     ruler = newRuler;
                     UpdateDisplay();
                     return;

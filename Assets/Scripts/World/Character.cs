@@ -9,31 +9,35 @@ public class Character
     public Characteristics characteristics;
     public Name name;
     public int age = 20;
-    int birthDate = 1;
+    public int birthDate = 1;
     float health = 100f;
 
-    public Character(Name _name, Race _race, int _birthDate = 0, int _age = 0) : this()
+    public Character(Name _name, Race _race, int _birthDate = 0, int _age = 0) : this(_race)
     {
         birthDate = _birthDate > 0 ? _birthDate : birthDate;
         age = _age > 0 ? _age : age;
-        race = _race;
         name = _name;
+    }
+    
+    public Character(Race race) {
+        this.race = race;
         LoadCharacteristicsDefinitions();
     }
 
-    public Character()
+    public static Character CreateCharacter()
     {
-        race = Library.races[Library.races.Keys.ToList().RandomElement()];
+        var race = Library.races[Library.races.Keys.ToList().RandomElement()];
+        var chara = new Character(race);
         
-        birthDate = Random.Range(1, Rules.set[RULE.YEAR_LENGTH].GetInt());
-        age = Random.Range(
+        chara.birthDate = Random.Range(1, Rules.set[RULE.YEAR_LENGTH].GetInt());
+        chara.age = Random.Range(
             race.rulerCreationRules.majority,
             Mathf.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)
         );
 
-        name = race.GetRandomCharacterName();
+        chara.name = race.GetRandomCharacterName();
 
-        LoadCharacteristicsDefinitions();
+        return chara;
     }
     
     void LoadCharacteristicsDefinitions()

@@ -17,6 +17,8 @@ public class QueryTool : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (displayer == null) return;
         var reg = displayer.GetSelectedRegion();
         if (reg == null) return;
 
