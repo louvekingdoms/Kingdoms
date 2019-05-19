@@ -7,6 +7,7 @@ public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
     List<Region> territory = new List<Region>();
     Race mainRace;
 
+    public readonly int id;
     public int mainland;
     public string name;
     public string demonym;
@@ -14,8 +15,9 @@ public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
     public Ruler ruler;
     public Resources resources;
 
-    public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
+    public Kingdom(int id, string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
     {
+        this.id = id;
         SetName(_name);
         mainRace = _mainRace;
         ruler = _ruler;
@@ -162,6 +164,9 @@ public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
     public class Rules
     {
         public ResourceDefinitions resourceDefinitions;
+        public System.Action onNewDay;
+        public System.Action onNewMonth;
+        public System.Action onNewYear;
     }
 
 

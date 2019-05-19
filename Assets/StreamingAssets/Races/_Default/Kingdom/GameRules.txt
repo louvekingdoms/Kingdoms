@@ -6,6 +6,19 @@ RESOURCES:[
     morale: [START:0, MIN:-10, MAX:10],
     impact: [MIN:0, MAX:999]
 ],
+ON_NEW_DAY:[
+	SET_CHARACTERISTIC(
+		CHAR:impact, 
+		VALUE:
+			SUM(
+				1:MULTIPLY(
+					1:GET_TOTAL_POPULATION(),
+					2:GET_MILITARIZATION_VALUE()
+				),
+				2:
+			)
+	)
+],
 ON_NEW_MONTH:[
     
     

@@ -27,7 +27,7 @@ public class World
             Region startingRegion = map.regions[Mathf.FloorToInt(Random.value * map.regions.Count)];
 
             var race = Library.races[Random.Range(0, Library.races.Count)];
-            Kingdom kingdom = new Kingdom(race.GetRandomKingdomName(), new List<Region>() { startingRegion }, race, Ruler.CreateRuler());
+            Kingdom kingdom = new Kingdom(i, race.GetRandomKingdomName(), new List<Region>() { startingRegion }, race, Ruler.CreateRuler());
 
             for (int j = 0; j < size; j++)
             {

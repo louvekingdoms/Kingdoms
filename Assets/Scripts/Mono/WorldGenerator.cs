@@ -23,10 +23,11 @@ public class WorldGenerator : MonoBehaviour
     void Start()
     {
         world = new World(parameters.seed);
-
         world.map.Generate(parameters, world);
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
-        
+
+        Game.world = world;
+
         StartCoroutine(RefreshDiagram());
     }
 

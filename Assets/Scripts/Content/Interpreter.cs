@@ -25,6 +25,7 @@ public static class Interpreter
     class InvalidBoolException : Exception { public InvalidBoolException(string message) : base(message) { } };
 
     class Context : Dictionary<string, string> { }
+
     class Relation
     {
         public string key;
@@ -52,6 +53,27 @@ public static class Interpreter
         {
             foreach(var action in actions) {
                 Add(action.key, action.effect);
+            }
+        }
+    }
+
+    class NamedFunction<T>
+    {
+        public string key;
+        public Func<Context, T> effect;
+        public NamedFunction(string key, Func<Context, T> effect)
+        {
+            this.key = key;
+            this.effect = effect;
+        }
+    }
+
+    class FunctionTable<T> : Dictionary<string, Func<Context, T>>
+    {
+        public FunctionTable(params NamedFunction<T>[] functions)
+        {
+            foreach (var function in functions) {
+                Add(function.key, function.effect);
             }
         }
     }
@@ -219,6 +241,17 @@ public static class Interpreter
         return chunk;
     }
 
+    // Give it either a number or a chunk that is supposed to be a data function returning an int
+    static float ToNumber(this string chunk)
+    {
+        float result;
+        if (float.TryParse(chunk, out result)) { return Convert.ToSingle(chunk); }
+
+        // Data function most probably
+        var relation = SeparateFunctionCall(chunk);
+        return numberDataFunctions[relation.key].Invoke(ReadContext(relation.content));
+    }
+
     #endregion
 
     #region COMMANDS
@@ -321,8 +354,39 @@ public static class Interpreter
         new NamedAction<Race>("FAMILY_NAMES", (race, content) => { race.names.family = content.Truncate().Split(separator).ToList(); }),
         new NamedAction<Race>("KINGDOM_NAMES", (race, content) => { race.names.kingdoms = content.Truncate().Split(separator).ToList(); })
     );
-    
-    #endregion    
+
+    #endregion
+
+    #region DATA FUNCTIONS
+
+    static FunctionTable<float> numberDataFunctions = new FunctionTable<float>(
+        // Arithmetic
+        new NamedFunction<float>("SUM", ctx => {
+            List<float> elements = new List<float>();
+            for (int i = 0; i < ctx.Count; i++) {
+                elements.Add(ToNumber(ctx[i.ToString()]));
+            }
+            return elements.Sum();
+        }),
+        new NamedFunction<float>("DIVIDE", ctx => {
+            var value = ToNumber(ctx["0"]);
+            for (int i = 0; i < ctx.Count; i++) {
+                value /= ToNumber(ctx[i.ToString()]);
+            }
+            return value;
+        }),
+        // Game
+        new NamedFunction<float>("COMBINED_REGIONAL_MILITARY_POWER", ctx => {
+
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            var militaryPower = kingdom.GetRegionalMilitaryPower();
+
+            return 0f;
+        })
+
+    );
+    #endregion
 
     #endregion
 

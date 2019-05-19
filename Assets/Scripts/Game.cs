@@ -7,6 +7,8 @@ public static class Game
 {
     static Thread mainThread = Thread.CurrentThread;
 
+    public static World world;
+
     public static bool IsRunningInMainThread()
     {
         return Thread.CurrentThread == mainThread;

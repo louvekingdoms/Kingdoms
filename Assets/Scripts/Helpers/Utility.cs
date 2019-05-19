@@ -8,4 +8,13 @@ public static class Utility
     {
         return list[Random.Range(0, list.Count)];
     }
+
+    public static float Sum(this IEnumerable<float> list)
+    {
+        var sum = 0f;
+        foreach(var element in list) {
+            sum += element;
+        }
+        return sum;
+    }
 }
