@@ -29,7 +29,7 @@ public class Character
         var race = Library.races[Library.races.Keys.ToList().RandomElement()];
         var chara = new Character(race);
         
-        chara.birthDate = Random.Range(1, Rules.set[RULE.YEAR_LENGTH].GetInt());
+        chara.birthDate = Random.Range(1, Rules.set[RULE.DAYS_IN_YEAR].GetInt());
         chara.age = Random.Range(
             race.rulerCreationRules.majority,
             Mathf.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)

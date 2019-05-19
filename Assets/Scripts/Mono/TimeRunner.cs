@@ -16,7 +16,7 @@ public class TimeRunner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        clock = new Clock(yearLength, monthCount);
+        clock = new Clock(Rules.set[RULE.DAYS_IN_YEAR].GetInt(), Rules.set[RULE.MONTHS_IN_YEAR].GetInt());
     }
 
     // Update is called once per frame

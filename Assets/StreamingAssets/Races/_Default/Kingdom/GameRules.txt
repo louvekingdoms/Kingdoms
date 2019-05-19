@@ -14,7 +14,6 @@ RESOURCES:[
     reputation: [MIN:-10, MAX:10, 
         RULES:[
             ON_NEW_MONTH:[
-                INCREASE(AMOUNT:1),
                 INCREASE(AMOUNT:RESOURCE(RSC:wealth))
             ]
         ]

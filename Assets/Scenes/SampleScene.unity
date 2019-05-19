@@ -10907,7 +10907,7 @@ MonoBehaviour:
   yearLength: 365
   monthCount: 12
   display: {fileID: 1650697996}
-  yearDurationSeconds: 10
+  yearDurationSeconds: 100
 --- !u!1 &1951015060
 GameObject:
   m_ObjectHideFlags: 0
