@@ -17,6 +17,7 @@ public class Race
     public string rulerTitle;
     public bool isPlayable = true;
     public Ruler.CreationRules rulerCreationRules;
+    public Kingdom.Rules kingdomRules;
     public Names names = new Names();
     
     public string GetRandomKingdomName()
@@ -43,4 +44,8 @@ public class Race
         public List<string> family = new List<string>();
     }
 
+    public string GetPlural()
+    {
+        return string.Format(plural, name);
+    }
 }

@@ -64,7 +64,7 @@ public static class Interpreter
     static string Sanitize(this string chunk)
     {
         Regex regex = new Regex("[ ](?=[^"+ litteralStringMarkers[1]+ "]*?(?:"+ litteralStringMarkers[0]+ "|$))");
-        return regex.Replace(chunk, "").Replace("\n", "").Replace("\r", "") ;
+        return regex.Replace(chunk, "").Replace("\n", "").Replace("\r", "").Replace("	", "");
     }
 
     static string Truncate(this string ensemble)
@@ -263,6 +263,16 @@ public static class Interpreter
         }
     };
 
+    static ActionTable<Kingdom.Rules> kingdomRulesElements = new ActionTable<Kingdom.Rules>(
+        new NamedAction<Kingdom.Rules>("RESOURCES", (rules, content) => { rules.resourceDefinitions = ReadResourceDefinitions(content); }),
+        new NamedAction<Kingdom.Rules>("ON_NEW_MONTH", (rules, content) => { /* FIXME */ })
+    );
+
+    static ActionTable<Kingdom.ResourceDefinition> kingdomResourceDefinitionElements = new ActionTable<Kingdom.ResourceDefinition>(
+        new NamedAction<Kingdom.ResourceDefinition>("MIN", (def, content) => { def.min = Convert.ToInt32(content); }),
+        new NamedAction<Kingdom.ResourceDefinition>("MAX", (def, content) => { def.max = Convert.ToInt32(content); }),
+        new NamedAction<Kingdom.ResourceDefinition>("START", (def, content) => { def.start = Convert.ToInt32(content); })
+    );
 
     static ActionTable<Ruler.CreationRules> rulerCreationRulesElements = new ActionTable<Ruler.CreationRules>(
         new NamedAction<Ruler.CreationRules>("CHARACTERISTICS", (rules, content) => { rules.characteristicDefinitions = ReadCharacteristicDefinitions(content); }),
@@ -343,6 +353,33 @@ public static class Interpreter
         raceInfo.LoadRelations(raceInfoElements, race);
         return race;
     }
+
+    public static Kingdom.Rules ReadKingdomRules(string chunk)
+    {
+        var rules = new Kingdom.Rules();
+        chunk.LoadRelations(kingdomRulesElements, rules);
+        return rules;
+    }
+
+    public static Kingdom.ResourceDefinitions ReadResourceDefinitions(string resources)
+    {
+        var definitions = new Kingdom.ResourceDefinitions();
+        var saneChunk = resources.Truncate();
+        foreach (var chunk in saneChunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
+            var relation = SeparateRelation(chunk);
+            definitions.Add(relation.key, ReadResourceDefinition(relation.content.Truncate(), relation.key));
+        }
+
+        return definitions;
+    }
+
+    public static Kingdom.ResourceDefinition ReadResourceDefinition(string chunk, string rscName)
+    {
+        var def = new Kingdom.ResourceDefinition();
+        chunk.LoadRelations(kingdomResourceDefinitionElements, def);
+        return def;
+    }
+
 
     public static Ruler.CreationRules ReadRulerCreationRules(string creationRules)
     {

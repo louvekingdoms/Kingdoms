@@ -50,7 +50,9 @@ public class Library
         }
         catch (System.Exception e)
         {
-            Debug.LogError("ERROR WHILE LOADING A RACE META FILE : " + raceFolderName + "\n\n" + e.ToString());
+            var msg = "ERROR WHILE LOADING A RACE META FILE : " + raceFolderName + "\n\n" + e.ToString();
+            Logger.Error(msg);
+            Debug.LogError(msg);
             throw;
         }
 
@@ -63,9 +65,10 @@ public class Library
             race = Interpreter.LoadRaceNames(race, Disk.ReadAllText(Paths.RaceKingdomNames(raceFolderName)));
             race = Interpreter.LoadRaceNames(race, Disk.ReadAllText(Paths.RaceCharacterNames(raceFolderName)));
         }
-        catch(System.Exception e)
-        {
-            Debug.LogError("ERROR WHILE LOADING RACE NAMES : " + raceFolderName + "\n\n" + e.ToString());
+        catch(System.Exception e) {
+            var msg = "ERROR WHILE LOADING RACE NAMES : " + raceFolderName + "\n\n" + e.ToString();
+            Logger.Error(msg);
+            Debug.LogError(msg);
             throw;
         }
 
@@ -77,10 +80,24 @@ public class Library
             var creationRules = Disk.ReadAllText(Paths.RaceRulerCreationRules(raceFolderName));
             race.rulerCreationRules = Interpreter.ReadRulerCreationRules(creationRules);
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("ERROR WHILE LOADING RACE RULER CREATION RULES : " + raceFolderName + "\n\n" + e.ToString());
+        catch (System.Exception e) {
+            var msg = "ERROR WHILE LOADING RACE CREATION RULES : " + raceFolderName + "\n\n" + e.ToString();
+            Logger.Error(msg);
+            Debug.LogError(msg);
             throw;
         }
+
+        ///
+        /// KINGDOM RULES
+        ///
+        try {
+            var textRules = Disk.ReadAllText(Paths.RaceKingdomGameRules(raceFolderName));
+            race.kingdomRules = Interpreter.ReadKingdomRules(textRules);
+        }
+        catch (System.Exception e) {
+            Debug.LogError("ERROR WHILE LOADING RACE KINGDOM CREATION RULES : " + raceFolderName + "\n\n" + e.ToString());
+            throw;
+        }
+
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Kingdom
+public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
 {
     List<Region> territory = new List<Region>();
     Race mainRace;
@@ -12,6 +12,7 @@ public class Kingdom
     public string demonym;
     public UnityEngine.Color color;
     public Ruler ruler;
+    public Resources resources;
 
     public Kingdom(string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
     {
@@ -21,12 +22,25 @@ public class Kingdom
         demonym = _demonym;
         if (_demonym == null) demonym = name + "'s";
 
+        LoadResourcesDefinitions();
+
         Logger.Debug("Kingdom " + GetDebugSignature() + " (ruled by " + _ruler.name + ":" + _ruler.GetHashCode() + ") is born");
 
         TakeOwnership(_territory);
         mainland = 0;
     }
 
+    void LoadResourcesDefinitions()
+    {
+        resources = new Resources();
+
+        foreach (var def in mainRace.kingdomRules.resourceDefinitions.Keys) {
+            resources.Add(def, new Resource(mainRace.kingdomRules.resourceDefinitions[def]));
+        }
+
+    }
+
+    #region TERRITORY OWNERSHIP
     ///////////////////////////////////
     ///
     ///     TERRITORY OWNERSHIP
@@ -77,8 +91,6 @@ public class Kingdom
     {
         return new List<Region>(territory.ToArray());
     }
-    ///
-    ///////////////////////////////////
 
     public List<Edge> GetFrontiers()
     {
@@ -114,6 +126,9 @@ public class Kingdom
         return territory[index];
     }
 
+#endregion
+
+
     public UnityEngine.Color GetColor()
     {
         return color;
@@ -144,8 +159,13 @@ public class Kingdom
         color = UnityEngine.Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
     }
 
+    public class Rules
+    {
+        public ResourceDefinitions resourceDefinitions;
+    }
 
-    // Varying characteristic
+
+    // Varying Resource
     public class Resource
     {
         int value;
@@ -154,7 +174,7 @@ public class Kingdom
         public Resource(ResourceDefinition _definition)
         {
             definition = _definition;
-            value = definition.min;
+            value = definition.start;
         }
 
         public void Increase(Resources otherChars, int amount = 1)
@@ -178,11 +198,6 @@ public class Kingdom
         {
             return value;
         }
-
-        public int GetClampedValue()
-        {
-            return UnityEngine.Mathf.Clamp(value, definition.min, definition.max);
-        }
     }
 
     // "set-in-stone" definition, rules, chara behavior
@@ -190,6 +205,7 @@ public class Kingdom
     {
         public int min = 0;
         public int max = 99;
+        public int start = 0;
     }
 
     // static set of varying characteristics

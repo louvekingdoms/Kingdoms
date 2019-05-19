@@ -35,9 +35,9 @@ public class Ruler : Character
 
     public Kingdom GetOwnedKingdom(Map map)
     {
-        foreach(var region in map.regions) {
-            if (region.IsOwned() && region.owner.ruler == this) {
-                return region.owner;
+        foreach(var kingdom in map.world.kingdoms) {
+            if (kingdom.ruler == this) {
+                return kingdom;
             }
         }
 
