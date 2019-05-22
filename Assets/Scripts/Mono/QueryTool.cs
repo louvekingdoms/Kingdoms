@@ -28,15 +28,24 @@ public class QueryTool : MonoBehaviour
             foreach(var rsc in reg.owner.resources.Keys) {
                 info.Add(rsc + ": " + reg.owner.resources[rsc].GetValue());
             }
-            kingdom = string.Join("\n", info);
+            kingdom = string.Join("\n - ", info);
+        }
+
+        var regionRsc = new List<string>();
+        foreach (var rsc in reg.resources.Keys) {
+            regionRsc.Add(rsc + ": " + reg.resources[rsc].GetValue());
         }
 
         text.text = string.Join("\n", new List<string>() {
             "kingdom: "+kingdom,
             "population: "+reg.population,
             "capital: "+reg.sites[reg.capital].Coord.ToVector2(),
+            "------",
+            string.Join("\n - ", regionRsc),
+            "------",
             "elevation: "+reg.elevation,
-            "moisture: "+reg.moisture
+            "moisture: "+reg.moisture,
+            "temperature: "+reg.temperature
         }.ToArray());
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Clock
 {
-    public interface IClockReceiver { void RegisterClockReceiver(Clock clock); }
+    public interface IClockReceiver { void RegisterClockReceiver(); }
     public interface IDaily : IClockReceiver { void OnNewDay(); }
     public interface IMonthly : IClockReceiver { void OnNewMonth(); }
     public interface IYearly : IClockReceiver { void OnNewYear(); }

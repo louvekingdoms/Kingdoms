@@ -77,7 +77,7 @@ public class Map
     {
         List<Region> regions = new List<Region>();
         List<Site> occupiedSites = new List<Site>();
-
+        int id = 1;
         foreach (Site site in sites.Values)
         {
             if (occupiedSites.Contains(site))
@@ -85,7 +85,8 @@ public class Map
                 continue;
             }
 
-            Region region = new Region(this, new List<Site>() { site });
+            Region region = new Region(id, this, new List<Site>() { site });
+            id++;
 
             int size = Random.Range(parameters.minRegionSize, parameters.maxRegionSize);
 

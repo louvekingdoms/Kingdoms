@@ -9,9 +9,15 @@ using System.Globalization;
 public static class Interpreter
 {
 
+    #region SUPERGLOBALS
+    static Context context = new Context();
+    static Helpers<float> numberHelpers = new Helpers<float>();
+    #endregion
+
     #region SETTINGS
     static char relationMarker = ':';
     static char separator = ',';
+    static char commentMarker = '*';
     static char[] ensembleMarkers = new char[] { '[', ']' };
     static char[] functionMarkers = new char[] { '(', ')' };
     static string[] litteralStringMarkers = new string[] { "<<", ">>"};
@@ -23,8 +29,24 @@ public static class Interpreter
     class UnknownFunctionException : Exception { public UnknownFunctionException(string message, List<string> cmdList) : base(message + "\nAvailable functions:" + string.Join("\n", cmdList)) { } };
     class UnknownKeyException : Exception { public UnknownKeyException(string message, List<string> cmdList) : base(message + "\nAvailable keys:" + string.Join("\n", cmdList)) { } };
     class InvalidBoolException : Exception { public InvalidBoolException(string message) : base(message) { } };
+    class MissingContextElementException : Exception { public MissingContextElementException(string message) : base(message) { } };
 
-    class Context : Dictionary<string, string> { }
+    class Context : Dictionary<string, string> {
+        public static Context Merge(Context a, Context b)
+        {
+            var ctx = a;
+            if (a == null) return b;
+            if (b == null) return a;
+
+            foreach(var element in b.Keys) {
+                ctx[element] = b[element];
+            }
+
+            return ctx;
+        }
+    }
+
+    class Helpers<T> : Dictionary<string, Func<T>> { }
 
     class Relation
     {
@@ -83,10 +105,27 @@ public static class Interpreter
     static void show_debug_message(object a) { print(a); }
     static void log(object a) { print(a); }
 
+    static void Require(this Context ctx, params string[] requirements)
+    {
+        foreach(var str in requirements) {
+            if (!ctx.ContainsKey(str)) {
+                throw new MissingContextElementException(str);
+            }
+        }
+    }
+
     static string Sanitize(this string chunk)
     {
-        Regex regex = new Regex("[ ](?=[^"+ litteralStringMarkers[1]+ "]*?(?:"+ litteralStringMarkers[0]+ "|$))");
-        return regex.Replace(chunk, "").Replace("\n", "").Replace("\r", "").Replace("	", "");
+        //Regex regex = new Regex(@"[\s](?=[^" + litteralStringMarkers[1]+ "]*?(?:"+ litteralStringMarkers[0]+ "|$))");
+        Regex regex = new Regex(@"\s*");
+        Regex comment = new Regex(@"\"+commentMarker+@"(.*?)\"+ commentMarker + @"");
+
+
+
+        chunk = regex.Replace(chunk, "");
+        chunk = comment.Replace(chunk, "");
+
+        return chunk.Replace("\n", "").Replace("	", "");
     }
 
     static string Truncate(this string ensemble)
@@ -118,11 +157,13 @@ public static class Interpreter
         int index = 0;
         int start = 0;
         int end = 0;
+        bool foundStart = false;
         foreach (char chr in chunk)
         {
-            if (chr == functionMarkers[0])
+            if (!foundStart && chr == functionMarkers[0])
             {
                 start = index;
+                foundStart = true;
             }
             if (start > 0 && chr == functionMarkers[1])
             {
@@ -144,12 +185,35 @@ public static class Interpreter
     static Context ReadContext(this string chunk)
     {
         var context = new Context();
+        var index = 1; // Used for unnamed args*
         foreach(var block in chunk.ExplodeChunk(new char[][] {ensembleMarkers, functionMarkers }))
         {
-            var relation = SeparateRelation(block);
+            Relation relation;
+            try {
+                relation = SeparateRelation(block);
+            }
+            catch (InvalidRelationException e) {
+                // most probably just a list element
+                Logger.Debug("You can ignore this message safely (list detection of interpreter) : " + e.Message);
+                relation = new Relation(index.ToString(), block);
+                index++;
+            }
             context[relation.key] = relation.content;
         }
         return context;
+    }
+
+    static void ReadNumberHelpers(this string chunk)
+    {
+        foreach(var line in chunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
+            var relation = line.SeparateRelation();
+            Func<float> action = delegate {
+                return ToNumber(relation.content);
+            };
+            var name = relation.key;
+
+            numberHelpers[name] = action;
+        }
     }
 
     static List<string> ExplodeChunk(this string chunk, char[][] skipSpaces)
@@ -161,6 +225,7 @@ public static class Interpreter
         for (int i = 0; i < chunk.Length; i++)
         {
             var chr = chunk[i];
+            
             // Inside an ensemble...
             if (expectedEndMarkers.Count > 0) 
             {
@@ -201,7 +266,7 @@ public static class Interpreter
 
         if (currentChunk.Length > 0)
         {
-            throw new UnsolvedDepthException("Out of depth! Are you closing all your ensembles?\nExceeding data:\n" + currentChunk);
+            throw new UnsolvedDepthException("Out of depth! Are you closing all your ensembles?\nOpened ensembles:"+string.Join(" ", expectedEndMarkers)+"\nExceeding data:\n" + currentChunk);
         }
         return chunks;
     }
@@ -246,10 +311,37 @@ public static class Interpreter
     {
         float result;
         if (float.TryParse(chunk, out result)) { return Convert.ToSingle(chunk); }
+        
+        // Keywords?
+        switch (chunk.ToUpper()) {
+            case "INF": return Mathf.Infinity;
+            case "NINF":
+            case "-INF":
+                return Mathf.NegativeInfinity;
+        }
 
+        // Maybe a helper ?
+        try {
+            var rel = SeparateFunctionCall(chunk);
+
+            if (numberHelpers.ContainsKey(rel.key)) {
+                return numberHelpers[rel.key].Invoke();
+            }
+        }
+        catch (InvalidRelationException e) {
+            Logger.Debug("You can ignore this error safely (interpreter trying to cast number as helper) : " + e.Message);
+        }
         // Data function most probably
         var relation = SeparateFunctionCall(chunk);
-        return numberDataFunctions[relation.key].Invoke(ReadContext(relation.content));
+        return numberDataFunctions[relation.key].Invoke(
+            Context.Merge(context, ReadContext(relation.content))
+        );
+        
+    }
+
+    static int ToInt(this float f)
+    {
+        return Mathf.RoundToInt(f);
     }
 
     #endregion
@@ -258,6 +350,7 @@ public static class Interpreter
 
     #region CREATION RULES
 
+    #region RULER
     class CharacteristicDefinitionRuleParameters
     {
         public Character.Characteristic concernedCharacteristic;
@@ -271,7 +364,7 @@ public static class Interpreter
             "MAP",(CharacteristicDefinitionRuleParameters x) => {
                 var characteristic = x.arguments["CHAR"];
                 var over = 0;
-                if (x.arguments.ContainsKey("OVER")) over = Convert.ToInt32(x.arguments["OVER"]);
+                if (x.arguments.ContainsKey("OVER")) over = ToNumber(x.arguments["OVER"]).ToInt();
 
                 if (x.concernedCharacteristic.GetClampedValue() > over + Mathf.Min(x.change, 0)){
                     x.rulerCharacteristics[characteristic].SetRaw(x.rulerCharacteristics[characteristic].GetValue() + x.change);
@@ -282,7 +375,7 @@ public static class Interpreter
             "REVERSE_MAP",(CharacteristicDefinitionRuleParameters x) => {
                 var characteristic = x.arguments["CHAR"];
                 var over = 0;
-                if (x.arguments.ContainsKey("OVER")) over = Convert.ToInt32(x.arguments["OVER"]);
+                if (x.arguments.ContainsKey("OVER")) over = ToNumber(x.arguments["OVER"]).ToInt();
 
                 if (x.concernedCharacteristic.GetClampedValue() > over + Mathf.Min(x.change, 0)){
                     x.rulerCharacteristics[characteristic].SetRaw(x.rulerCharacteristics[characteristic].GetValue() - x.change);
@@ -296,24 +389,13 @@ public static class Interpreter
         }
     };
 
-    static ActionTable<Kingdom.Rules> kingdomRulesElements = new ActionTable<Kingdom.Rules>(
-        new NamedAction<Kingdom.Rules>("RESOURCES", (rules, content) => { rules.resourceDefinitions = ReadResourceDefinitions(content); }),
-        new NamedAction<Kingdom.Rules>("ON_NEW_MONTH", (rules, content) => { /* FIXME */ })
-    );
-
-    static ActionTable<Kingdom.ResourceDefinition> kingdomResourceDefinitionElements = new ActionTable<Kingdom.ResourceDefinition>(
-        new NamedAction<Kingdom.ResourceDefinition>("MIN", (def, content) => { def.min = Convert.ToInt32(content); }),
-        new NamedAction<Kingdom.ResourceDefinition>("MAX", (def, content) => { def.max = Convert.ToInt32(content); }),
-        new NamedAction<Kingdom.ResourceDefinition>("START", (def, content) => { def.start = Convert.ToInt32(content); })
-    );
-
     static ActionTable<Ruler.CreationRules> rulerCreationRulesElements = new ActionTable<Ruler.CreationRules>(
         new NamedAction<Ruler.CreationRules>("CHARACTERISTICS", (rules, content) => { rules.characteristicDefinitions = ReadCharacteristicDefinitions(content); }),
-        new NamedAction<Ruler.CreationRules>("STOCK", (rules, content) => { rules.stock = Convert.ToInt32(content); }),
-        new NamedAction<Ruler.CreationRules>("MAJORITY", (rules, content) => { rules.majority = Convert.ToInt32(content); }),
-        new NamedAction<Ruler.CreationRules>("BASE_LIFESPAN", (rules, content) => { rules.maximumLifespan = Convert.ToInt32(content); }),
+        new NamedAction<Ruler.CreationRules>("STOCK", (rules, content) => { rules.stock = ToNumber(content).ToInt(); }),
+        new NamedAction<Ruler.CreationRules>("MAJORITY", (rules, content) => { rules.majority = ToNumber(content).ToInt(); }),
+        new NamedAction<Ruler.CreationRules>("BASE_LIFESPAN", (rules, content) => { rules.maximumLifespan = ToNumber(content).ToInt(); }),
         new NamedAction<Ruler.CreationRules>("LIFESPAN_TO_STOCK_RATIO", (rules, content) => { rules.lifespanToStockRatio = Convert.ToSingle(content, CultureInfo.InvariantCulture); }),
-        new NamedAction<Ruler.CreationRules>("MAX_STARTING_AGE", (rules, content) => { rules.maxStartingAge = Convert.ToInt32(content); })
+        new NamedAction<Ruler.CreationRules>("MAX_STARTING_AGE", (rules, content) => { rules.maxStartingAge = ToNumber(content).ToInt(); })
     );
 
     class CCDRAndCharaName { public Character.CharacteristicDefinition.Rules rules = new Character.CharacteristicDefinition.Rules(); public string name; }
@@ -330,18 +412,50 @@ public static class Interpreter
 
     class CCDAndCharaName { public Character.CharacteristicDefinition def = new Character.CharacteristicDefinition(); public string name; }
     static ActionTable<CCDAndCharaName> characteristicDefinitionElements = new ActionTable<CCDAndCharaName>(
-        new NamedAction<CCDAndCharaName>("MIN", (defAndChara, content) => { defAndChara.def.min = Convert.ToInt32(content); }),
-        new NamedAction<CCDAndCharaName>("MAX", (defAndChara, content) => { defAndChara.def.max = Convert.ToInt32(content); }),
-        new NamedAction<CCDAndCharaName>("COST", (defAndChara, content) => { defAndChara.def.cost = Convert.ToInt32(content); }),
+        new NamedAction<CCDAndCharaName>("MIN", (defAndChara, content) => { defAndChara.def.min = ToNumber(content).ToInt(); }),
+        new NamedAction<CCDAndCharaName>("MAX", (defAndChara, content) => { defAndChara.def.max = ToNumber(content).ToInt(); }),
+        new NamedAction<CCDAndCharaName>("COST", (defAndChara, content) => { defAndChara.def.cost = ToNumber(content).ToInt(); }),
         new NamedAction<CCDAndCharaName>("RULES", (defAndChara, content) => { defAndChara.def.rules = ReadCharacteristicDefinitionRules(content.Truncate(), defAndChara.name); })
     );
+
+    #endregion
+
+    #region KINGDOM & REGION
+
+    static ActionTable<Kingdom.Behavior> kingdomBehaviorElements = new ActionTable<Kingdom.Behavior>(
+        new NamedAction<Kingdom.Behavior>("HELPERS", (rules, content) => { ReadNumberHelpers(content.Truncate()); }),
+        new NamedAction<Kingdom.Behavior>("RESOURCES", (rules, content) => { rules.resourceDefinitions = ReadResourceDefinitions(content); }),
+        new NamedAction<Kingdom.Behavior>("ON_NEW_DAY", (rules, content) => { rules.onNewDay = (kingdom) => { context["KINGDOM"] = kingdom.id.ToString();  ReadActions(content.Truncate()).Invoke(); }; }),
+        new NamedAction<Kingdom.Behavior>("ON_NEW_MONTH", (rules, content) => { rules.onNewDay = (kingdom) => { context["KINGDOM"] = kingdom.id.ToString(); print("Reading actions " + content.Truncate()); ReadActions(content.Truncate()).Invoke(); }; })
+    );
+
+    static ActionTable<Region.Behavior> regionBehaviorElements = new ActionTable<Region.Behavior>(
+        new NamedAction<Region.Behavior>("HELPERS", (rules, content) => { ReadNumberHelpers(content.Truncate()); }),
+        new NamedAction<Region.Behavior>("RESOURCES", (rules, content) => { rules.resourceDefinitions = ReadResourceDefinitions(content); }),
+        new NamedAction<Region.Behavior>("ON_NEW_DAY", (rules, content) => { rules.onNewDay = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; }),
+        new NamedAction<Region.Behavior>("ON_NEW_MONTH", (rules, content) => { rules.onNewMonth = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; })
+    );    
+
+    static ActionTable<ResourceDefinition> resourceDefinitionElements = new ActionTable<ResourceDefinition>(
+        new NamedAction<ResourceDefinition>("MIN", (def, content) => { def.min = ToNumber(content); }),
+        new NamedAction<ResourceDefinition>("MAX", (def, content) => { def.max = ToNumber(content); }),
+        new NamedAction<ResourceDefinition>("START", (def, content) => { def.start = ToNumber(content); }),
+        new NamedAction<ResourceDefinition>("RULES", (def, content) => {
+            content.Truncate().LoadRelations(resourceDefinitionElements, def);
+        }),
+        // Rules
+        new NamedAction<ResourceDefinition>("NO_MODIFIERS", (def, content) => { def.noModifiers = StringToBool(content); }),
+        new NamedAction<ResourceDefinition>("IS_MUTABLE", (def, content) => { def.isMutable = StringToBool(content); })
+    );
+
+    #endregion
 
     #endregion
 
     #region RACE INFO
 
     static ActionTable<Race> raceInfoElements = new ActionTable<Race>(
-        new NamedAction<Race>("ID", (race, content) => { race.id = Convert.ToInt32(content); }),
+        new NamedAction<Race>("ID", (race, content) => { race.id = ToNumber(content).ToInt(); }),
         new NamedAction<Race>("NAME", (race, content) => { race.name = content; }),
         new NamedAction<Race>("CHARACTER_NAME_FORMAT", (race, content) => { race.characterNameFormat = ReadLitteralString(content); }),
         new NamedAction<Race>("PLURAL", (race, content) => { race.plural = content; }),
@@ -357,32 +471,100 @@ public static class Interpreter
 
     #endregion
 
+    #region ACTIONS
+
+    static ActionTable<World> actionElements = new ActionTable<World>(
+        new NamedAction<World>("SET_RESOURCE_VALUE", (world, content) => {
+            var ctx = Context.Merge(context, ReadContext(content));
+            ctx.Require("KINGDOM", "VALUE", "RSC");
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            var value = ctx["VALUE"].ToNumber();
+
+            kingdom.resources[ctx["RSC"]].SetRaw(value);
+        }),
+        new NamedAction<World>("INCREMENT_RESOURCE_VALUE", (world, content) => {
+            var ctx = Context.Merge(context, ReadContext(content));
+            ctx.Require("KINGDOM", "AMOUNT", "RSC");
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            var value = ctx["AMOUNT"].ToNumber();
+
+            kingdom.resources[ctx["RSC"]].Increase(kingdom.resources, value);
+        })
+    );
+
+    #endregion
+
     #region DATA FUNCTIONS
 
     static FunctionTable<float> numberDataFunctions = new FunctionTable<float>(
         // Arithmetic
         new NamedFunction<float>("SUM", ctx => {
             List<float> elements = new List<float>();
-            for (int i = 0; i < ctx.Count; i++) {
-                elements.Add(ToNumber(ctx[i.ToString()]));
+            for (int i = 1; i < ctx.Count + 1; i++) {
+                elements.Add(ctx[i.ToString()].ToNumber());
             }
             return elements.Sum();
         }),
         new NamedFunction<float>("DIVIDE", ctx => {
-            var value = ToNumber(ctx["0"]);
-            for (int i = 0; i < ctx.Count; i++) {
-                value /= ToNumber(ctx[i.ToString()]);
+            var value = ctx["1"].ToNumber();
+            for (int i = 2; i < ctx.Count + 1; i++) {
+                value /= ctx[i.ToString()].ToNumber();
             }
             return value;
         }),
-        // Game
-        new NamedFunction<float>("COMBINED_REGIONAL_MILITARY_POWER", ctx => {
+        new NamedFunction<float>("MULTIPLY", ctx => {
+            float value = ctx["1"].ToNumber();
+            for (int i = 2; i < ctx.Count + 1; i++) {
+                value *= ctx[i.ToString()].ToNumber();
+            }
+            return value;
+        }),
+        new NamedFunction<float>("STEP", ctx => {
+            float a = ctx["REFERENCE"].ToNumber();
+            float b = ctx["OVER"].ToNumber();
+            if (a >= b) return 1f;
+            else return 0f;
+        }),
+        new NamedFunction<float>("NEGATE", ctx => {
+            return -ctx["VALUE"].ToNumber();
+        }),
 
+        // Resources
+        new NamedFunction<float>("GET_RESOURCE_VALUE", ctx => {
             var kingdomId = ctx["KINGDOM"].ToNumber();
             var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
-            var militaryPower = kingdom.GetRegionalMilitaryPower();
+            return kingdom.resources[ctx["RSC"]].GetValue();
+        }),
+        new NamedFunction<float>("GET_RESOURCE_MAX", ctx => {
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            return kingdom.resources[ctx["RSC"]].definition.max;
+        }),
+        new NamedFunction<float>("GET_RESOURCE_MIN", ctx => {
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            return kingdom.resources[ctx["RSC"]].definition.min;
+        }),
 
-            return 0f;
+        // Game situation
+        new NamedFunction<float>("GET_NUMBER_OF_OWNED_REGIONS", ctx => {
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            return kingdom.GetTerritory().Count;
+        }),
+        new NamedFunction<float>("GET_NUMBER_OF_REGIONS", ctx => {
+            return Game.world.map.regions.Count;
+        }),
+        new NamedFunction<float>("GET_SUM_OF_ALL_OWNED_REGIONS_RESOURCE_VALUE", ctx => {
+            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
+            var sum = 0f;
+            foreach(var region in kingdom.GetTerritory()) {
+                sum += region.resources[ctx["RSC"]].GetValue();
+            }
+            return sum;
         })
 
     );
@@ -418,16 +600,23 @@ public static class Interpreter
         return race;
     }
 
-    public static Kingdom.Rules ReadKingdomRules(string chunk)
+    public static Kingdom.Behavior ReadKingdomBehavior(string chunk)
     {
-        var rules = new Kingdom.Rules();
-        chunk.LoadRelations(kingdomRulesElements, rules);
+        var rules = new Kingdom.Behavior();
+        chunk.LoadRelations(kingdomBehaviorElements, rules);
         return rules;
     }
 
-    public static Kingdom.ResourceDefinitions ReadResourceDefinitions(string resources)
+    public static Region.Behavior ReadRegionBehavior(string chunk)
     {
-        var definitions = new Kingdom.ResourceDefinitions();
+        var rules = new Region.Behavior();
+        chunk.LoadRelations(regionBehaviorElements, rules);
+        return rules;
+    }
+
+    public static ResourceDefinitions ReadResourceDefinitions(string resources)
+    {
+        var definitions = new ResourceDefinitions();
         var saneChunk = resources.Truncate();
         foreach (var chunk in saneChunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
             var relation = SeparateRelation(chunk);
@@ -437,10 +626,10 @@ public static class Interpreter
         return definitions;
     }
 
-    public static Kingdom.ResourceDefinition ReadResourceDefinition(string chunk, string rscName)
+    public static ResourceDefinition ReadResourceDefinition(string chunk, string rscName)
     {
-        var def = new Kingdom.ResourceDefinition();
-        chunk.LoadRelations(kingdomResourceDefinitionElements, def);
+        var def = new ResourceDefinition();
+        chunk.LoadRelations(resourceDefinitionElements, def);
         return def;
     }
 
@@ -500,6 +689,22 @@ public static class Interpreter
                     arguments = ReadContext(relation.content)
                 }
             );
+        };
+    }
+    
+    static Action ReadActions(string chunk)
+    {
+        List<Action> actions = new List<Action>();
+        foreach (var instruction in chunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
+            var call = SeparateFunctionCall(instruction);
+            if (!actionElements.ContainsKey(call.key)) throw new UnknownFunctionException(call.key, actionElements.Keys.ToList());
+            actions.Add(delegate { actionElements[call.key](Game.world, call.content); });
+        }
+
+        return delegate {
+            foreach (var action in actions) {
+                action.Invoke();
+            }
         };
     }
 }

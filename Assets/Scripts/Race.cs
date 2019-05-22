@@ -17,7 +17,7 @@ public class Race
     public string rulerTitle;
     public bool isPlayable = true;
     public Ruler.CreationRules rulerCreationRules;
-    public Kingdom.Rules kingdomRules;
+    public Kingdom.Behavior kingdomBehavior;
     public Names names = new Names();
     
     public string GetRandomKingdomName()

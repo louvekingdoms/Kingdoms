@@ -1,0 +1,9 @@
+RESOURCES:[
+	* Accumulated resources *
+	population: [MIN:0, MAX:INF],
+	
+	* Dynamic resources *
+    wealth: [START:0, MIN:-10, MAX:10],
+    civilization: [MIN:0, MAX:100],
+	defense: [MIN:0, MAX:INF]
+]

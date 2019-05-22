@@ -21,7 +21,13 @@ public class Library
 
     static void Load()
     {
+        LoadRegionBehavior();
         LoadRaces();
+    }
+
+    static void LoadRegionBehavior()
+    {
+        Region.behavior = Interpreter.ReadRegionBehavior(Disk.ReadAllText(Paths.RegionDefinitionsFile()));
     }
 
     static void LoadRaces()
@@ -91,8 +97,8 @@ public class Library
         /// KINGDOM RULES
         ///
         try {
-            var textRules = Disk.ReadAllText(Paths.RaceKingdomGameRules(raceFolderName));
-            race.kingdomRules = Interpreter.ReadKingdomRules(textRules);
+            var textRules = Disk.ReadAllText(Paths.RaceKingdomGameBehavior(raceFolderName));
+            race.kingdomBehavior = Interpreter.ReadKingdomBehavior(textRules);
         }
         catch (System.Exception e) {
             Debug.LogError("ERROR WHILE LOADING RACE KINGDOM CREATION RULES : " + raceFolderName + "\n\n" + e.ToString());

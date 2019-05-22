@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
+public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 {
     List<Region> territory = new List<Region>();
     Race mainRace;
@@ -30,14 +30,16 @@ public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
 
         TakeOwnership(_territory);
         mainland = 0;
+
+        RegisterClockReceiver();
     }
 
     void LoadResourcesDefinitions()
     {
         resources = new Resources();
 
-        foreach (var def in mainRace.kingdomRules.resourceDefinitions.Keys) {
-            resources.Add(def, new Resource(mainRace.kingdomRules.resourceDefinitions[def]));
+        foreach (var def in mainRace.kingdomBehavior.resourceDefinitions.Keys) {
+            resources.Add(def, new Resource(mainRace.kingdomBehavior.resourceDefinitions[def]));
         }
 
     }
@@ -161,67 +163,38 @@ public class Kingdom //: Clock.IDaily, Clock.IMonthly, Clock.IYearly //FIXME
         color = UnityEngine.Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
     }
 
-    public class Rules
+    public class Behavior
     {
         public ResourceDefinitions resourceDefinitions;
-        public System.Action onNewDay;
-        public System.Action onNewMonth;
-        public System.Action onNewYear;
+        public System.Action<Kingdom> onNewDay;
+        public System.Action<Kingdom> onNewMonth;
+        public System.Action<Kingdom> onNewYear;
     }
-
-
-    // Varying Resource
-    public class Resource
-    {
-        int value;
-        public readonly ResourceDefinition definition;
-
-        public Resource(ResourceDefinition _definition)
-        {
-            definition = _definition;
-            value = definition.start;
-        }
-
-        public void Increase(Resources otherChars, int amount = 1)
-        {
-            var oldVal = value;
-            value = UnityEngine.Mathf.Clamp(value + amount, definition.min, definition.max);
-        }
-
-        public void Decrease(Resources otherChars, int amount = 1)
-        {
-            var oldVal = value;
-            value = UnityEngine.Mathf.Clamp(value - amount, definition.min, definition.max);
-        }
-
-        public void SetRaw(int val)
-        {
-            value = val;
-        }
-
-        public int GetValue()
-        {
-            return value;
-        }
-    }
-
-    // "set-in-stone" definition, rules, chara behavior
-    public class ResourceDefinition
-    {
-        public int min = 0;
-        public int max = 99;
-        public int start = 0;
-    }
-
-    // static set of varying characteristics
-    public class Resources : Dictionary<string, Resource> { }
-
-    // static definitions set
-    public class ResourceDefinitions : Dictionary<string, ResourceDefinition> { }
-
 
     public string GetDebugSignature()
     {
         return name + "_" + mainRace + ":" + GetHashCode();
     }
+
+    public void RegisterClockReceiver()
+    {
+        Game.clock.RegisterClockReceiver(this);
+    }
+
+    public void OnNewDay()
+    {
+        UnityEngine.Debug.Log("New day!");
+        mainRace.kingdomBehavior.onNewDay(this);
+    }
+
+    public void OnNewMonth()
+    {
+        mainRace.kingdomBehavior.onNewMonth(this);
+    }
+
+    public void OnNewYear()
+    {
+        mainRace.kingdomBehavior.onNewYear(this);
+    }
+
 }
