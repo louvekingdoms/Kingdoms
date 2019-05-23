@@ -35,14 +35,21 @@ public static class Interpreter
         public static Context Merge(Context a, Context b)
         {
             var ctx = a;
+            print("Merging contexts " + a + " and " + b + "");
             if (a == null) return b;
             if (b == null) return a;
-
+            
             foreach(var element in b.Keys) {
+                print("Adding " + element + " from "+ b +" to context " + ctx);
                 ctx[element] = b[element];
             }
-
+            print("Finished merging context. CTX is now " + ctx);
             return ctx;
+        }
+
+        public override string ToString()
+        {
+            return string.Join(",", Keys.ToList());
         }
     }
 
@@ -100,7 +107,7 @@ public static class Interpreter
         }
     }
 
-    static void print(object a) { Debug.Log(a); }
+    static void print(object a) { Logger.Debug(a.ToString()); Debug.Log(a); }
     static void echo(object a) { print(a); }
     static void show_debug_message(object a) { print(a); }
     static void log(object a) { print(a); }
@@ -124,7 +131,7 @@ public static class Interpreter
 
         chunk = regex.Replace(chunk, "");
         chunk = comment.Replace(chunk, "");
-
+         
         return chunk.Replace("\n", "").Replace("	", "");
     }
 
@@ -138,6 +145,9 @@ public static class Interpreter
         int index = 0;
         foreach (char chr in chunk)
         {
+            if (chr == ensembleMarkers[0] || chr == functionMarkers[0]) {
+                throw new InvalidRelationException("Unexpected " + chr + " in relation " + chunk);
+            }
             if (chr == relationMarker)
             {
                 var key = chunk.Substring(0, index);
@@ -149,7 +159,7 @@ public static class Interpreter
         }
 
         // Error?!
-        throw new InvalidRelationException(chunk); 
+        throw new InvalidRelationException(chunk+" is not a valid relation"); 
     }
 
     static Relation SeparateFunctionCall(this string chunk)
@@ -198,6 +208,7 @@ public static class Interpreter
                 relation = new Relation(index.ToString(), block);
                 index++;
             }
+            print("Adding to context " + context + " : " + relation.key + " => " + relation.content);
             context[relation.key] = relation.content;
         }
         return context;
@@ -205,13 +216,18 @@ public static class Interpreter
 
     static void ReadNumberHelpers(this string chunk)
     {
+        print("Reading number helpers from chunk " + chunk);
         foreach(var line in chunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
+            print("Reading line " + line);
             var relation = line.SeparateRelation();
             Func<float> action = delegate {
+                print("To-number " + relation.content);
+                var nmb = ToNumber(relation.content);
+                print("gives out " + nmb);
                 return ToNumber(relation.content);
             };
             var name = relation.key;
-
+            print("Added " + name + " => " + relation.content + " to helpers");
             numberHelpers[name] = action;
         }
     }
@@ -309,6 +325,7 @@ public static class Interpreter
     // Give it either a number or a chunk that is supposed to be a data function returning an int
     static float ToNumber(this string chunk)
     {
+        print("Tasked with converting " + chunk + " to a number");
         float result;
         if (float.TryParse(chunk, out result)) { return Convert.ToSingle(chunk); }
         
@@ -321,21 +338,22 @@ public static class Interpreter
         }
 
         // Maybe a helper ?
-        try {
-            var rel = SeparateFunctionCall(chunk);
-
-            if (numberHelpers.ContainsKey(rel.key)) {
-                return numberHelpers[rel.key].Invoke();
-            }
-        }
-        catch (InvalidRelationException e) {
-            Logger.Debug("You can ignore this error safely (interpreter trying to cast number as helper) : " + e.Message);
-        }
-        // Data function most probably
         var relation = SeparateFunctionCall(chunk);
-        return numberDataFunctions[relation.key].Invoke(
+
+        if (numberHelpers.ContainsKey(relation.key)) {
+            print("Firing helper " + relation.key+ " from chunk "+ chunk);
+            return numberHelpers[relation.key].Invoke();
+        }
+
+        // Data function most probably
+        print("Looking for number function named like "+relation.key+"");
+        if (!numberDataFunctions.ContainsKey(relation.key)) throw new UnknownFunctionException(relation.key, numberDataFunctions.Keys.ToList());
+        print("Firing " + relation.key + " on "+relation.content+" from "+chunk);
+        var finalResult = numberDataFunctions[relation.key].Invoke(
             Context.Merge(context, ReadContext(relation.content))
         );
+
+        return finalResult;
         
     }
 
@@ -508,10 +526,13 @@ public static class Interpreter
             return elements.Sum();
         }),
         new NamedFunction<float>("DIVIDE", ctx => {
+            print("Division initiated with context " + string.Join(",", ctx.Keys.ToList()) + "");
             var value = ctx["1"].ToNumber();
             for (int i = 2; i < ctx.Count + 1; i++) {
+                print("Adding " + ctx[i.ToString()] + " to division");
                 value /= ctx[i.ToString()].ToNumber();
             }
+            print("Divided from context until obtained " + value);
             return value;
         }),
         new NamedFunction<float>("MULTIPLY", ctx => {
