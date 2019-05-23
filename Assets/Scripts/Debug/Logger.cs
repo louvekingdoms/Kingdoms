@@ -11,6 +11,8 @@ using UnityEditor;
 
 public class Logger
 {
+    static type LogLevel = type.DEBUG;
+
     static StringBuilder builder = new StringBuilder();
 
     static public string locale = "fr-FR";
@@ -22,7 +24,7 @@ public class Logger
     static public int networkLoggerPort = 4004;
     static LoggerNetClient netClient;
 
-    public enum type {DEBUG, INFO, WARNING, ERROR };
+    public enum type {TRACE, DEBUG, INFO, WARNING, ERROR };
 
     static CoroutineSlave coroutineSlave;
     static Logger instance;
@@ -56,6 +58,7 @@ public class Logger
     }
 
 
+    public static void Trace(params string[] msgs) { LogMessage(type.TRACE, msgs); }
     public static void Debug(params string[] msgs) { LogMessage(type.DEBUG, msgs); }
     public static void Info(params string[] msgs) { LogMessage(type.INFO, msgs); }
     public static void Warn(params string[] msgs) { LogMessage(type.WARNING, msgs); }
@@ -72,6 +75,10 @@ public class Logger
         if (!isInitialized)
         {
             Initialize();
+        }
+
+        if (type < LogLevel) {
+            return;
         }
 
         string caller = "";

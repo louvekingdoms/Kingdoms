@@ -6,4 +6,13 @@ RESOURCES:[
     wealth: [START:0, MIN:-10, MAX:10],
     civilization: [MIN:0, MAX:100],
 	defense: [MIN:0, MAX:INF]
+],
+ON_GAME_START:[
+	SET_REGION_RESOURCE_VALUE(
+		RSC:population,
+		VALUE:GET_RULE_NUMERIC_VALUE(RULE:STARTING_POPULATION_PER_REGION)
+	)
+],
+ON_NEW_DAY:[
+
 ]

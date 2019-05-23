@@ -13,7 +13,6 @@ public class Region
     public int capital;
     public Map map { get; }
     public Kingdom owner = null;
-    public int population;
     public Resources resources;
 
     public float elevation = 0f;
@@ -26,7 +25,6 @@ public class Region
         sites = _sites;
         capital = _capital;
         map = _map;
-        population = Rules.set[RULE.STARTING_POPULATION_PER_REGION].GetInt();
 
         LoadResourcesDefinitions();
     }
@@ -117,6 +115,7 @@ public class Region
     public class Behavior
     {
         public ResourceDefinitions resourceDefinitions;
+        public System.Action<Region> onGameStart;
         public System.Action<Region> onNewDay;
         public System.Action<Region> onNewMonth;
         public System.Action<Region> onNewYear;

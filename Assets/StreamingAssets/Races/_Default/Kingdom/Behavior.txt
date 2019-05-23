@@ -15,7 +15,7 @@ HELPERS:[
 			GET_NUMBER_OF_OWNED_REGIONS(),
 			GET_NUMBER_OF_REGIONS()
 		),
-	PercentageOfMapControlRequiredForAverageThreat: 20 * % *,
+	PercentageOfMapControlRequiredForAverageThreat: 0.2 * % *,
 	ArmyRegenerationDailySpeed: 
 		MULTIPLY(
 			SUM(GET_RESOURCE_VALUE(RSC:wealth), NEGATE(VALUE:GET_RESOURCE_MIN(RSC:wealth))),
@@ -38,13 +38,13 @@ RESOURCES:[
 ],
 ON_NEW_DAY:[
 	* Population *
-	SET_RESOURCE_VALUE(
+	SET_KINGDOM_RESOURCE_VALUE(
 		RSC:population, 
 		VALUE:GET_SUM_OF_ALL_OWNED_REGIONS_RESOURCE_VALUE(RSC:population)
 	),
 	
 	* Threat *
-	SET_RESOURCE_VALUE(
+	SET_KINGDOM_RESOURCE_VALUE(
 		RSC:threat,
 		VALUE:
 			SUM(
@@ -58,7 +58,7 @@ ON_NEW_DAY:[
 						NEGATE(VALUE:GET_RESOURCE_MIN(RSC:threat))
 					)
 				),
-				NEGATE(
+				NEGATE(VALUE:
 					MULTIPLY(
 						PercentageOfMapControlRequiredForAverageThreat(),
 						SUM(
@@ -69,21 +69,7 @@ ON_NEW_DAY:[
 				),
 				GET_RESOURCE_MIN(RSC:threat)
 			)
-	),
-	
-	* Army *
-	INCREMENT_RESOURCE_VALUE(
-		RSC:population, 
-		VALUE:
-			MULTIPLY(
-				STEP(
-					REFERENCE:MULTIPLY(GET_SUM_OF_ALL_OWNED_REGIONS_RESOURCE_VALUE(RSC:population), GET_RESOURCE_VALUE(RSC:militarization)),
-					OVER:GET_RESOURCE_VALUE(RSC:army)
-				),
-				ArmyRegenerationDailySpeed()
-			)
-	)
-	
+	)	
 	
 	
 	* Morale *
@@ -93,7 +79,7 @@ ON_NEW_DAY:[
 ],
 ON_NEW_MONTH:[	
 	* Gold *
-	INCREMENT_RESOURCE_VALUE(
+	INCREMENT_KINGDOM_RESOURCE_VALUE(
 		RSC:gold,
 		AMOUNT:	
 		* 
@@ -104,6 +90,19 @@ ON_NEW_MONTH:[
 				SUM(GET_RESOURCE_VALUE(RSC:wealth), NEGATE(VALUE:GET_RESOURCE_MIN(RSC:wealth))),
 				GET_SUM_OF_ALL_OWNED_REGIONS_RESOURCE_VALUE(RSC:wealth),
 				StructureModifier()
+			)
+	),
+	
+	* Army *
+	INCREMENT_KINGDOM_RESOURCE_VALUE(
+		RSC:army, 
+		AMOUNT:
+			MULTIPLY(
+				STEP(
+					REFERENCE:DIVIDE(MULTIPLY(GET_SUM_OF_ALL_OWNED_REGIONS_RESOURCE_VALUE(RSC:population), GET_RESOURCE_VALUE(RSC:militarization)), 100),
+					OVER:GET_RESOURCE_VALUE(RSC:army)
+				),
+				ArmyRegenerationDailySpeed()
 			)
 	)
 	* simulate growth by increasing region population by a factor each year

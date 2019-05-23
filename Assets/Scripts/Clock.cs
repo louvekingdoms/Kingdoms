@@ -174,7 +174,7 @@ public class Clock
         }
     }
 
-    bool AreCalculationsStillRunning()
+    public bool AreCalculationsStillRunning()
     {
         CheckThreads();
         if (threads.Count > 0) return true;

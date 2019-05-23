@@ -30,20 +30,21 @@ public static class Interpreter
     class UnknownKeyException : Exception { public UnknownKeyException(string message, List<string> cmdList) : base(message + "\nAvailable keys:" + string.Join("\n", cmdList)) { } };
     class InvalidBoolException : Exception { public InvalidBoolException(string message) : base(message) { } };
     class MissingContextElementException : Exception { public MissingContextElementException(string message) : base(message) { } };
+    class UnknownRuleException : Exception { public UnknownRuleException(string message, List<RULE> cmdList) : base(message + "\nAvailable keys:" + string.Join("\n", cmdList)) { } };
 
     class Context : Dictionary<string, string> {
         public static Context Merge(Context a, Context b)
         {
             var ctx = a;
-            print("Merging contexts " + a + " and " + b + "");
+            //print"Merging contexts " + a + " and " + b + "");
             if (a == null) return b;
             if (b == null) return a;
             
             foreach(var element in b.Keys) {
-                print("Adding " + element + " from "+ b +" to context " + ctx);
+                //print"Adding " + element + " from "+ b +" to context " + ctx);
                 ctx[element] = b[element];
             }
-            print("Finished merging context. CTX is now " + ctx);
+            //print"Finished merging context. CTX is now " + ctx);
             return ctx;
         }
 
@@ -107,7 +108,7 @@ public static class Interpreter
         }
     }
 
-    static void print(object a) { Logger.Debug(a.ToString()); Debug.Log(a); }
+    static void print(object a) { Logger.Debug(a.ToString()); }
     static void echo(object a) { print(a); }
     static void show_debug_message(object a) { print(a); }
     static void log(object a) { print(a); }
@@ -204,11 +205,11 @@ public static class Interpreter
             }
             catch (InvalidRelationException e) {
                 // most probably just a list element
-                Logger.Debug("You can ignore this message safely (list detection of interpreter) : " + e.Message);
+                Logger.Trace("You can ignore this message safely (list detection of interpreter) : " + e.Message);
                 relation = new Relation(index.ToString(), block);
                 index++;
             }
-            print("Adding to context " + context + " : " + relation.key + " => " + relation.content);
+            //print"Adding to context " + context + " : " + relation.key + " => " + relation.content);
             context[relation.key] = relation.content;
         }
         return context;
@@ -216,18 +217,18 @@ public static class Interpreter
 
     static void ReadNumberHelpers(this string chunk)
     {
-        print("Reading number helpers from chunk " + chunk);
+        //print"Reading number helpers from chunk " + chunk);
         foreach(var line in chunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
-            print("Reading line " + line);
+            //print"Reading line " + line);
             var relation = line.SeparateRelation();
             Func<float> action = delegate {
-                print("To-number " + relation.content);
+                //print"Executing ToNumber on " + relation.content);
                 var nmb = ToNumber(relation.content);
-                print("gives out " + nmb);
-                return ToNumber(relation.content);
+                //print"Result of it is " + nmb);
+                return nmb;
             };
             var name = relation.key;
-            print("Added " + name + " => " + relation.content + " to helpers");
+            //print"Added " + name + " => " + relation.content + " to helpers");
             numberHelpers[name] = action;
         }
     }
@@ -325,9 +326,11 @@ public static class Interpreter
     // Give it either a number or a chunk that is supposed to be a data function returning an int
     static float ToNumber(this string chunk)
     {
-        print("Tasked with converting " + chunk + " to a number");
+        //print"Tasked with converting " + chunk + " to a number");
         float result;
-        if (float.TryParse(chunk, out result)) { return Convert.ToSingle(chunk); }
+        if (float.TryParse(chunk, NumberStyles.Any, CultureInfo.InvariantCulture, out result)) {
+            return Convert.ToSingle(chunk, CultureInfo.InvariantCulture);
+        }
         
         // Keywords?
         switch (chunk.ToUpper()) {
@@ -341,20 +344,24 @@ public static class Interpreter
         var relation = SeparateFunctionCall(chunk);
 
         if (numberHelpers.ContainsKey(relation.key)) {
-            print("Firing helper " + relation.key+ " from chunk "+ chunk);
+            //print"Firing helper " + relation.key+ " from chunk "+ chunk);
             return numberHelpers[relation.key].Invoke();
         }
 
         // Data function most probably
-        print("Looking for number function named like "+relation.key+"");
+        //print"Looking for number function named like "+relation.key+"");
         if (!numberDataFunctions.ContainsKey(relation.key)) throw new UnknownFunctionException(relation.key, numberDataFunctions.Keys.ToList());
-        print("Firing " + relation.key + " on "+relation.content+" from "+chunk);
-        var finalResult = numberDataFunctions[relation.key].Invoke(
-            Context.Merge(context, ReadContext(relation.content))
-        );
-
+        //print"Firing " + relation.key + " on "+relation.content+" from "+chunk);
+        var finalResult = numberDataFunctions[relation.key].Invoke(ReadContext(relation.content));
+        print("Obtained " + finalResult + " from "+relation.key+" with ( "+relation.content+" )");
         return finalResult;
         
+    }
+
+    static string Get(this Context ctx, string varName)
+    {
+        if (ctx.ContainsKey(varName)) return ctx[varName];
+        else return context[varName];
     }
 
     static int ToInt(this float f)
@@ -444,14 +451,17 @@ public static class Interpreter
         new NamedAction<Kingdom.Behavior>("HELPERS", (rules, content) => { ReadNumberHelpers(content.Truncate()); }),
         new NamedAction<Kingdom.Behavior>("RESOURCES", (rules, content) => { rules.resourceDefinitions = ReadResourceDefinitions(content); }),
         new NamedAction<Kingdom.Behavior>("ON_NEW_DAY", (rules, content) => { rules.onNewDay = (kingdom) => { context["KINGDOM"] = kingdom.id.ToString();  ReadActions(content.Truncate()).Invoke(); }; }),
-        new NamedAction<Kingdom.Behavior>("ON_NEW_MONTH", (rules, content) => { rules.onNewDay = (kingdom) => { context["KINGDOM"] = kingdom.id.ToString(); print("Reading actions " + content.Truncate()); ReadActions(content.Truncate()).Invoke(); }; })
+        new NamedAction<Kingdom.Behavior>("ON_NEW_MONTH", (rules, content) => { rules.onNewMonth = (kingdom) => { context["KINGDOM"] = kingdom.id.ToString(); //print"Reading actions " + content.Truncate()); 
+            ReadActions(content.Truncate()).Invoke(); };
+        })
     );
 
     static ActionTable<Region.Behavior> regionBehaviorElements = new ActionTable<Region.Behavior>(
         new NamedAction<Region.Behavior>("HELPERS", (rules, content) => { ReadNumberHelpers(content.Truncate()); }),
         new NamedAction<Region.Behavior>("RESOURCES", (rules, content) => { rules.resourceDefinitions = ReadResourceDefinitions(content); }),
         new NamedAction<Region.Behavior>("ON_NEW_DAY", (rules, content) => { rules.onNewDay = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; }),
-        new NamedAction<Region.Behavior>("ON_NEW_MONTH", (rules, content) => { rules.onNewMonth = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; })
+        new NamedAction<Region.Behavior>("ON_NEW_MONTH", (rules, content) => { rules.onNewMonth = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; }),
+        new NamedAction<Region.Behavior>("ON_GAME_START", (rules, content) => { rules.onGameStart = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; })
     );    
 
     static ActionTable<ResourceDefinition> resourceDefinitionElements = new ActionTable<ResourceDefinition>(
@@ -492,7 +502,7 @@ public static class Interpreter
     #region ACTIONS
 
     static ActionTable<World> actionElements = new ActionTable<World>(
-        new NamedAction<World>("SET_RESOURCE_VALUE", (world, content) => {
+        new NamedAction<World>("SET_KINGDOM_RESOURCE_VALUE", (world, content) => {
             var ctx = Context.Merge(context, ReadContext(content));
             ctx.Require("KINGDOM", "VALUE", "RSC");
             var kingdomId = ctx["KINGDOM"].ToNumber();
@@ -501,7 +511,7 @@ public static class Interpreter
 
             kingdom.resources[ctx["RSC"]].SetRaw(value);
         }),
-        new NamedAction<World>("INCREMENT_RESOURCE_VALUE", (world, content) => {
+        new NamedAction<World>("INCREMENT_KINGDOM_RESOURCE_VALUE", (world, content) => {
             var ctx = Context.Merge(context, ReadContext(content));
             ctx.Require("KINGDOM", "AMOUNT", "RSC");
             var kingdomId = ctx["KINGDOM"].ToNumber();
@@ -509,6 +519,24 @@ public static class Interpreter
             var value = ctx["AMOUNT"].ToNumber();
 
             kingdom.resources[ctx["RSC"]].Increase(kingdom.resources, value);
+        }),
+        new NamedAction<World>("SET_REGION_RESOURCE_VALUE", (world, content) => {
+            var ctx = Context.Merge(context, ReadContext(content));
+            ctx.Require("REGION", "VALUE", "RSC");
+            var regionId = ctx["REGION"].ToNumber();
+            var region = Game.world.map.regions.Find(o => o.id == regionId);
+            var value = ctx["VALUE"].ToNumber();
+
+            region.resources[ctx["RSC"]].SetRaw(value);
+        }),
+        new NamedAction<World>("INCREMENT_REGION_RESOURCE_VALUE", (world, content) => {
+            var ctx = Context.Merge(context, ReadContext(content));
+            ctx.Require("REGION", "VALUE", "RSC");
+            var regionId = ctx["REGION"].ToNumber();
+            var region = Game.world.map.regions.Find(o => o.id == regionId);
+            var value = ctx["VALUE"].ToNumber();
+
+            region.resources[ctx["RSC"]].Increase(region.resources, value);
         })
     );
 
@@ -526,20 +554,25 @@ public static class Interpreter
             return elements.Sum();
         }),
         new NamedFunction<float>("DIVIDE", ctx => {
-            print("Division initiated with context " + string.Join(",", ctx.Keys.ToList()) + "");
+            //print"Division initiated with context " + string.Join(",", ctx.Keys.ToList()) + "");
             var value = ctx["1"].ToNumber();
             for (int i = 2; i < ctx.Count + 1; i++) {
-                print("Adding " + ctx[i.ToString()] + " to division");
+                //print"Adding " + ctx[i.ToString()] + " to division");
                 value /= ctx[i.ToString()].ToNumber();
             }
-            print("Divided from context until obtained " + value);
+            //print"Divided from context until obtained " + value);
             return value;
         }),
         new NamedFunction<float>("MULTIPLY", ctx => {
+            //print"Multiplication initiated with context " + string.Join(",", ctx.Keys.ToList()) + "");
             float value = ctx["1"].ToNumber();
             for (int i = 2; i < ctx.Count + 1; i++) {
-                value *= ctx[i.ToString()].ToNumber();
+                //print"Multiplicating "+value+" with " + ctx[i.ToString()] + "");
+                var factor = ctx[i.ToString()].ToNumber();
+                //print"Multiplicating (converted) " + value + " with " + factor + "");
+                value *= factor;
             }
+            //print"Final value of multiplication gave out " + value);
             return value;
         }),
         new NamedFunction<float>("STEP", ctx => {
@@ -554,24 +587,27 @@ public static class Interpreter
 
         // Resources
         new NamedFunction<float>("GET_RESOURCE_VALUE", ctx => {
-            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdomId = ctx.Get("KINGDOM").ToNumber();
             var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
-            return kingdom.resources[ctx["RSC"]].GetValue();
+            return kingdom.resources[ctx.Get("RSC")].GetValue();
         }),
         new NamedFunction<float>("GET_RESOURCE_MAX", ctx => {
-            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdomId = ctx.Get("KINGDOM").ToNumber();
             var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
-            return kingdom.resources[ctx["RSC"]].definition.max;
+            return kingdom.resources[ctx.Get("RSC")].definition.max;
         }),
         new NamedFunction<float>("GET_RESOURCE_MIN", ctx => {
-            var kingdomId = ctx["KINGDOM"].ToNumber();
+            //print"Finding minimal resource for context " + ctx);
+            var kingdomId = ctx.Get("KINGDOM").ToNumber();
             var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
-            return kingdom.resources[ctx["RSC"]].definition.min;
+            var min = kingdom.resources[ctx.Get("RSC")].definition.min;
+            //print"Result is : " + min);
+            return min;
         }),
 
         // Game situation
         new NamedFunction<float>("GET_NUMBER_OF_OWNED_REGIONS", ctx => {
-            var kingdomId = ctx["KINGDOM"].ToNumber();
+            var kingdomId = ctx.Get("KINGDOM").ToNumber();
             var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
             return kingdom.GetTerritory().Count;
         }),
@@ -579,13 +615,28 @@ public static class Interpreter
             return Game.world.map.regions.Count;
         }),
         new NamedFunction<float>("GET_SUM_OF_ALL_OWNED_REGIONS_RESOURCE_VALUE", ctx => {
-            var kingdomId = ctx["KINGDOM"].ToNumber();
+            ctx.Require("RSC");
+            var kingdomId = ctx.Get("KINGDOM").ToNumber();
             var kingdom = Game.world.kingdoms.Find(o => o.id == kingdomId);
             var sum = 0f;
             foreach(var region in kingdom.GetTerritory()) {
-                sum += region.resources[ctx["RSC"]].GetValue();
+                sum += region.resources[ctx.Get("RSC")].GetValue();
             }
             return sum;
+        }),
+
+        // Rules
+        new NamedFunction<float>("GET_RULE_NUMERIC_VALUE", ctx => {
+            ctx.Require("RULE");
+            var val = 0;
+            try {
+                var rule = (RULE)Enum.Parse(typeof(RULE), ctx["RULE"]);
+                val = Rules.set[rule].GetInt();
+                return val;
+            }
+            catch (ArgumentException e){
+                throw new UnknownRuleException(e.Message+": "+ctx["RSC"], Rules.set.Keys.ToList());
+            }
         })
 
     );

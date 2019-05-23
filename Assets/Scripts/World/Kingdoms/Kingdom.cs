@@ -143,17 +143,6 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
         return mainRace;
     }
 
-    public int GetPopulation()
-    {
-        int total = 0;
-        foreach(var region in territory)
-        {
-            total += region.population;
-        }
-
-        return total;
-    }
-
     public void SetName(string _name)
     {
         var rnd = new System.Random(_name.GetHashCode());
@@ -183,7 +172,6 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 
     public void OnNewDay()
     {
-        UnityEngine.Debug.Log("New day!");
         mainRace.kingdomBehavior.onNewDay(this);
     }
 

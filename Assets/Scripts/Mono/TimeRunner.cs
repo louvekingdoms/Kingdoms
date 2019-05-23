@@ -31,8 +31,11 @@ public class TimeRunner : MonoBehaviour
                 Logger.Warn("The clock is running behind! Date is "+ Game.clock.GetDate().ToString()+", timescale is "+ Game.clock.GetTimeScale()+". Skipping advance...");
             }
             i = 0f;
+            display.color = !adv ? Color.red : Color.white;
         }
 
-        if (display != null) display.text = Game.clock.GetDate().ToString();
+        if (display != null) {
+            display.text = Game.clock.GetDate().ToString();
+        }
     }
 }
