@@ -69,6 +69,7 @@ public class Clock
         }
     }
 
+    public event System.Action onCalculationEnd;
 
     float timeScale = 1f; // Duration of a day in real seconds
     int daysInAYear = 365;
@@ -156,11 +157,13 @@ public class Clock
             }
             else {
                 currentDate.month = months[monthIndex];
+                ExecuteInThread(ExecuteAllMonthlyEvents);
             }
-            ExecuteInThread(ExecuteAllMonthlyEvents);
         }
-        currentDate.day = currentDate.month.GetDay(currentDay);
-        ExecuteInThread(ExecuteAllDailyEvents);
+        else {
+            currentDate.day = currentDate.month.GetDay(currentDay);
+            ExecuteInThread(ExecuteAllDailyEvents);
+        }
 
         return true;
     }
@@ -204,6 +207,7 @@ public class Clock
                 (receiver as IDaily).OnNewDay();
             }
         }
+        if (onCalculationEnd!=null) onCalculationEnd.Invoke();
     }
 
     void ExecuteAllMonthlyEvents()
@@ -214,6 +218,7 @@ public class Clock
                 (receiver as IMonthly).OnNewMonth();
             }
         }
+        ExecuteAllDailyEvents();
     }
 
     void ExecuteAllYearlyEvents()
@@ -224,6 +229,7 @@ public class Clock
                 (receiver as IYearly).OnNewYear();
             }
         }
+        ExecuteAllMonthlyEvents();
     }
 
     public Date GetDate()

@@ -14,8 +14,7 @@ HELPERS:[
 		DIVIDE(
 			GET_NUMBER_OF_OWNED_REGIONS(),
 			GET_NUMBER_OF_REGIONS()
-		),
-	PercentageOfMapControlRequiredForAverageThreat: 0.2 * % *,
+		)
 	ArmyRegenerationDailySpeed: 
 		MULTIPLY(
 			SUM(GET_RESOURCE_VALUE(RSC:wealth), NEGATE(VALUE:GET_RESOURCE_MIN(RSC:wealth))),
@@ -56,15 +55,6 @@ ON_NEW_DAY:[
 					SUM(
 						GET_RESOURCE_MAX(RSC:threat),
 						NEGATE(VALUE:GET_RESOURCE_MIN(RSC:threat))
-					)
-				),
-				NEGATE(VALUE:
-					MULTIPLY(
-						PercentageOfMapControlRequiredForAverageThreat(),
-						SUM(
-							GET_RESOURCE_MAX(RSC:threat),
-							NEGATE(VALUE:GET_RESOURCE_MIN(RSC:threat))
-						)
 					)
 				),
 				GET_RESOURCE_MIN(RSC:threat)
