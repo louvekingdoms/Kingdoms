@@ -9,6 +9,7 @@ public static class Game
 
     public static World world;
     public static Clock clock;
+    public static System.Random random;
 
     public static bool IsRunningInMainThread()
     {

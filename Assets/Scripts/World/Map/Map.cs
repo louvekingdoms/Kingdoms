@@ -1,8 +1,8 @@
 ﻿using csDelaunay;
 using Superbest_random;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Map
 {
@@ -11,7 +11,6 @@ public class Map
 
     Dictionary<Vector2f, Site> sites;
     List<Edge> edges;
-    System.Random r;
 
     public enum Frontier { DESERT, PEAKS, OCEAN, EMPIRE};
 
@@ -27,8 +26,14 @@ public class Map
 
         public bool isGaussianRandom = true;
 
+        public int maxMountains = 4;
+        public int minMountains = 1;
+        [UnityEngine.Range(0f, 1f)] public float mountainsCentrality = 0.4f;
+        [UnityEngine.Range(1f, 3f)] public float steepness = 1f;
+
         public int minRegionSize = 1;
         public int maxRegionSize = 3;
+        public float countrySize = 0.85f;
 
         public Frontier topFrontier;
         public Frontier bottomFrontier;
@@ -39,9 +44,8 @@ public class Map
     public void Generate(Parameters parameters, World _world)
     {
         world = _world;
-
-        Random.InitState(parameters.seed);
-        r = new System.Random(parameters.seed);
+        
+        Game.random = new Random(parameters.seed);
 
         // Create your sites (lets call that the center of your polygons)
         List<Vector2f> points = new List<Vector2f>();
@@ -60,7 +64,7 @@ public class Map
         Rectf bounds = new Rectf(0, 0, 1, 1);
 
         // There is a two ways you can create the voronoi diagram: with or without the lloyd relaxation
-        Voronoi voronoi = new Voronoi(points, bounds, Random.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
+        Voronoi voronoi = new Voronoi(points, bounds, Game.random.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
 
         // But you could also create it without lloyd relaxtion and call that function later if you want
         //Voronoi voronoi = new Voronoi(points,bounds);
@@ -70,10 +74,24 @@ public class Map
         sites = voronoi.SitesIndexedByLocation;
         edges = voronoi.Edges;
 
-        regions = GenerateRegions(sites, parameters);
+        var mountains = GetRandomPoints(parameters, Game.random.Range(parameters.minMountains, parameters.maxMountains), parameters.mountainsCentrality);
+
+        regions = GenerateRegions(parameters, sites, mountains);
     }
 
-    List<Region> GenerateRegions(Dictionary<Vector2f, Site> sites, Parameters parameters)
+    List<Vector2f> GetRandomPoints(Parameters parameters, int amount=1, float range=1f, float minRadius=0f)
+    {
+        var points = new List<Vector2f>();
+        for (int i = 0; i < amount; i++)
+        {
+            var x = (Game.random.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2)/range + minRadius;
+            var y = (Game.random.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2)/range + minRadius;
+            points.Add(new Vector2f((float)x, (float)y));
+        }
+        return points;
+    }
+
+    List<Region> GenerateRegions(Parameters parameters, Dictionary<Vector2f, Site> sites, List<Vector2f> mountains)
     {
         List<Region> regions = new List<Region>();
         List<Site> occupiedSites = new List<Site>();
@@ -86,9 +104,25 @@ public class Map
             }
 
             Region region = new Region(id, this, new List<Site>() { site });
+
+            // Calculating elevation
+            Vector2f nearestMountain = new Vector2f();
+            bool firstLoop = true;
+            foreach(var mountain in mountains)
+            {
+                if (firstLoop || nearestMountain.Distance(site.Coord) > mountain.Distance(site.Coord))
+                {
+                    nearestMountain = mountain;
+                    firstLoop = false;
+                }
+            }
+            region.elevation = Math.Max(0f, Math.Min(1f, 
+                1f - nearestMountain.Distance(site.Coord) * parameters.steepness
+            ));
+
             id++;
 
-            int size = Random.Range(parameters.minRegionSize, parameters.maxRegionSize);
+            int size = Game.random.Range(parameters.minRegionSize, parameters.maxRegionSize);
 
             if (size > 0)
             {
@@ -109,7 +143,7 @@ public class Map
                         break;
                     }
 
-                    Site toBlob = blobCandidates[Mathf.FloorToInt(Random.value * blobCandidates.Count)];
+                    Site toBlob = blobCandidates[(int)Math.Floor(Game.random.NextFloat() * blobCandidates.Count)];
                     region.sites.Add(toBlob);
                     occupiedSites.Add(toBlob);
 
@@ -143,8 +177,8 @@ public class Map
 
         for (int i = 0; i < parameters.polygonNumber; i++)
         {
-            var x = (r.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
-            var y = (r.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
+            var x = (Game.random.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
+            var y = (Game.random.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
             var point = new Vector2f(x, y);
             points.Add(point);
             if (point.x > 1 || point.y > 1) {
@@ -162,7 +196,7 @@ public class Map
         List<Vector2f> points = new List<Vector2f>();
         for (int i = 0; i < parameters.polygonNumber; i++)
         {
-            var point = new Vector2f(Random.Range(0, 1), Random.Range(0, 1  ));
+            var point = new Vector2f(Game.random.Range(0, 1), Game.random.Range(0, 1));
             points.Add(point);
         }
 
