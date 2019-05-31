@@ -7506,7 +7506,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   regionsLayer: {fileID: 700753806}
-  defaultMode: 3
+  defaultMode: 2
   strokeMaterial: {fileID: 0}
   displayedCellExample: {fileID: 781612798}
   regionScale: 1
@@ -10870,8 +10870,13 @@ MonoBehaviour:
     mu: 0.2
     sigma: 0.1
     isGaussianRandom: 1
+    maxMountains: 4
+    minMountains: 1
+    mountainsCentrality: 0.75
+    steepness: 2.8
     minRegionSize: 0
     maxRegionSize: 2
+    countrySize: 0.85
     topFrontier: 0
     bottomFrontier: 0
     leftFrontier: 0
