@@ -1,20 +1,23 @@
 HELPERS:[
 	StructureModifier:
-		DIVIDE(
-			SUM(
-				GET_RESOURCE_VALUE(RSC:structure), 
-				NEGATE(VALUE:GET_RESOURCE_MIN(RSC:structure))
-			), 
-			SUM(
-				GET_RESOURCE_MAX(RSC:structure), 
-				NEGATE(VALUE:GET_RESOURCE_MIN(RSC:structure))
-			)
-		),
+        SUM(
+            DIVIDE(
+                SUM(
+                    GET_RESOURCE_VALUE(RSC:structure), 
+                    NEGATE(VALUE:GET_RESOURCE_MIN(RSC:structure))
+                ), 
+                SUM(
+                    GET_RESOURCE_MAX(RSC:structure), 
+                    NEGATE(VALUE:GET_RESOURCE_MIN(RSC:structure))
+                )
+            ),
+            0.5
+        ),
 	PercentageOfMapControl: 
 		DIVIDE(
 			GET_NUMBER_OF_OWNED_REGIONS(),
 			GET_NUMBER_OF_REGIONS()
-		)
+		),
 	ArmyRegenerationDailySpeed: 
 		MULTIPLY(
 			SUM(GET_RESOURCE_VALUE(RSC:wealth), NEGATE(VALUE:GET_RESOURCE_MIN(RSC:wealth))),
