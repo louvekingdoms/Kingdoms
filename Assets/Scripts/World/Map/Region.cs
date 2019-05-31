@@ -19,6 +19,10 @@ public class Region
     public float moisture = 0f;
     public float temperature = 0f;
 
+    public bool isControllable = false;
+    public Map.Frontier frontier; // ONLY USED WHEN NOT CONTROLLABLE
+                                   // The frontier to which this NON CONTROLLABLE region belongs
+
     public Region(int id, Map _map, List<Site> _sites, int _capital = 0)
     {
         this.id = id;

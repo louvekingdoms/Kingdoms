@@ -11,8 +11,15 @@ public class Map
 
     Dictionary<Vector2f, Site> sites;
     List<Edge> edges;
+    Dictionary<Vector2f, Frontier> frontiers = new Dictionary<Vector2f, Frontier>();
 
-    public enum Frontier { DESERT, PEAKS, OCEAN, EMPIRE};
+
+    public class Frontier
+    {
+        public enum Type { DESERT, PEAKS, OCEAN, EMPIRE };
+        public Type type;
+        public List<Region> frontieredRegions = new List<Region>();
+    }
 
     [System.Serializable]
     public class Parameters
@@ -35,10 +42,10 @@ public class Map
         public int maxRegionSize = 3;
         public float countrySize = 0.85f;
 
-        public Frontier topFrontier;
-        public Frontier bottomFrontier;
-        public Frontier leftFrontier;
-        public Frontier rightFrontier;
+        public Frontier.Type topFrontier;
+        public Frontier.Type bottomFrontier;
+        public Frontier.Type leftFrontier;
+        public Frontier.Type rightFrontier;
     }
 
     public void Generate(Parameters parameters, World _world)
@@ -46,6 +53,7 @@ public class Map
         world = _world;
         
         Game.random = new Random(parameters.seed);
+        CalculateFrontiers(parameters);
 
         // Create your sites (lets call that the center of your polygons)
         List<Vector2f> points = new List<Vector2f>();
@@ -79,6 +87,15 @@ public class Map
         regions = GenerateRegions(parameters, sites, mountains);
     }
 
+    void CalculateFrontiers(Parameters parameters)
+    {
+        frontiers.Clear();
+        frontiers.Add(new Vector2f(0f, 0.5f), new Frontier() { type = parameters.leftFrontier });
+        frontiers.Add(new Vector2f(1f, 0.5f), new Frontier() { type = parameters.rightFrontier });
+        frontiers.Add(new Vector2f(0.5f, 0f), new Frontier() { type = parameters.topFrontier });
+        frontiers.Add(new Vector2f(0.5f, 1f), new Frontier() { type = parameters.bottomFrontier });
+    }
+
     List<Vector2f> GetRandomPoints(Parameters parameters, int amount=1, float range=1f, float minRadius=0f)
     {
         var points = new List<Vector2f>();
@@ -104,6 +121,14 @@ public class Map
             }
 
             Region region = new Region(id, this, new List<Site>() { site });
+
+
+            // Calculating out-of-map region
+            float distanceWithCenter = site.Coord.Distance(new Vector2f(0.5f, 0.5f));
+            if (distanceWithCenter > parameters.countrySize)
+            {
+                OutFrontierize(region);
+            }
 
             // Calculating elevation
             Vector2f nearestMountain = new Vector2f();
@@ -201,5 +226,56 @@ public class Map
         }
 
         return points;
+    }
+
+    void OutFrontierize(Region region)
+    {
+        region.isControllable = false;
+        Vector2f center = region.sites[region.capital].Coord;
+        Vector2f nearestFrontierPos = new Vector2f();
+        bool foundNearest = false;
+        foreach(var frontierPos in frontiers.Keys)
+        {
+            if (!foundNearest || nearestFrontierPos.Distance(center) > frontierPos.Distance(center))
+            {
+                nearestFrontierPos = frontierPos;
+                foundNearest = true;
+            }
+        }
+
+        var frontier = frontiers[nearestFrontierPos];
+        region.frontier = frontier;
+        frontier.frontieredRegions.Add(region);
+
+        switch (frontier.type)
+        {
+            case Frontier.Type.DESERT:
+                region.moisture = region.temperature < 0.5f ? 1f : 0f;
+                region.elevation = Game.random.NextFloat() * 0.05f;
+                region.temperature = region.temperature < 0.5f ? 0f : 1f;
+                break;
+
+            case Frontier.Type.EMPIRE:
+                if (frontier.frontieredRegions.Count > 0) {
+                    region.owner = frontier.frontieredRegions[0].owner;
+                }
+                else
+                {   // Creating empire
+                    var race = Library.races[Game.random.Range(0, Library.races.Count)];
+                    region.owner = new Kingdom(-1, race.GetRandomKingdomName(), new List<Region>() { region }, race, Ruler.CreateRuler());
+                    region.owner.name = "Empire of "+ region.owner.name;
+                }
+                break;
+
+            case Frontier.Type.OCEAN:
+                region.moisture = 1f;
+                region.elevation = 0f;
+                region.temperature *= 0.5f;
+                break;
+
+            case Frontier.Type.PEAKS:
+                region.elevation = 1f;
+                break;
+        }
     }
 }
