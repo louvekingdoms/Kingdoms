@@ -148,6 +148,10 @@ public class MapDisplayer : MonoBehaviour
                                 displayer.SetColor(cell.region.owner.color);
                             }
                             break;
+
+                        case DisplayMode.TOPOLOGY:
+                            displayer.SetColor(new Color(cell.region.elevation, 0f, 0f, 1f));
+                            break;
                     }
                     if (cell.isHighlighted)  displayer.SetColor(new Color(1f, 0f, 1f));
                     
