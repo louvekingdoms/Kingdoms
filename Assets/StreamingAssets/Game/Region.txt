@@ -1,3 +1,17 @@
+HELPERS:[
+	WealthPercent:
+		DIVIDE(
+			SUM(
+				GET_RESOURCE_VALUE(RSC:structure), 
+				NEGATE(VALUE:GET_RESOURCE_MIN(RSC:structure))
+			), 
+			SUM(
+				GET_RESOURCE_MAX(RSC:structure), 
+				NEGATE(VALUE:GET_RESOURCE_MIN(RSC:structure))
+			)
+		),
+    PopulationGrowthAmplitude:0.4 * from x0.8 to x1.2 *
+],
 RESOURCES:[
 	* Accumulated resources *
 	population: [MIN:0, MAX:INF],
@@ -10,9 +24,34 @@ RESOURCES:[
 ON_GAME_START:[
 	SET_REGION_RESOURCE_VALUE(
 		RSC:population,
-		VALUE:GET_RULE_NUMERIC_VALUE(RULE:STARTING_POPULATION_PER_REGION)
+		VALUE:
+            GET_RULE_NUMERIC_VALUE(RULE:STARTING_POPULATION_PER_REGION)
 	)
 ],
 ON_NEW_DAY:[
 
+],
+ON_NEW_MONTH:[
+    SET_REGION_RESOURCE_VALUE(
+        RSC:population,
+        VALUE:
+            MULTIPLY(
+                GET_REGION_RESOURCE_VALUE(RSC:population),
+                SUM(
+                    MULTIPLY(
+                        WealthPercent(),
+                        PopulationGrowthAmplitude()
+                    ),
+                    SUM(
+                        1,
+                        NEGATE(VALUE:
+                            DIVIDE(
+                                PopulationGrowthAmplitude(),
+                                2
+                            )
+                        )
+                    )
+                )
+            )
+    )
 ]
