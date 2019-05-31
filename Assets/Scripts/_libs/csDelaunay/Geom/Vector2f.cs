@@ -65,8 +65,17 @@ public struct Vector2f {
 		float cy = b.y - a.y;
 		return cx*cx + cy*cy;
 	}
-	
-	public static bool operator == (Vector2f a, Vector2f b) {
+
+    public float Distance(Vector2f v)
+    {
+        return Vector2f.Distance(this, v);
+    }
+    public static float Distance(Vector2f a, Vector2f b)
+    {
+        return Math.Sqrt(DistanceSquare(a, b)).ToFloat();
+    }
+
+    public static bool operator == (Vector2f a, Vector2f b) {
 		return a.x == b.x && 
 			a.y == b.y;
 	}
