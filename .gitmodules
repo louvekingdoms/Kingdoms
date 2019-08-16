@@ -1,0 +1,3 @@
+[submodule "Assets/Scripts/KingdomsSharedCode"]
+	path = Assets/Scripts/KingdomsSharedCode
+	url = https://github.com/louvekingdoms/KingdomsSharedCode
