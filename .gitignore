@@ -6,6 +6,7 @@
 Assets/AssetStoreTools*
 Assets/Plugins*
 Assets/JsonDotNet*
+Logs/*
 
 # Visual Studio cache directory
 .vs/
