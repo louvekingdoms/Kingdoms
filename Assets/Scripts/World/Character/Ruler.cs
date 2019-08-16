@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
+using Logger = KingdomsSharedCode.Generic.Logger;
 
 public class Ruler : Character
 {

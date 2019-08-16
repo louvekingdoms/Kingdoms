@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Character
 {
@@ -26,13 +25,13 @@ public class Character
 
     public static Character CreateCharacter()
     {
-        var race = Library.races[Library.races.Keys.ToList().RandomElement()];
+        var race = Library.races[Library.races.Keys.ToList().PickRandom(Game.state.random)];
         var chara = new Character(race);
         
-        chara.birthDate = Random.Range(1, Rules.set[RULE.DAYS_IN_YEAR].GetInt());
-        chara.age = Random.Range(
+        chara.birthDate = Game.state.random.Range(1, Rules.set[RULE.DAYS_IN_YEAR].GetInt());
+        chara.age = Game.state.random.Range(
             race.rulerCreationRules.majority,
-            Mathf.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)
+            KMaths.RoundToInt(Rules.set[RULE.LIFESPAN_MULTIPLIER].GetFloat() * race.rulerCreationRules.maximumLifespan)
         );
 
         chara.name = race.GetRandomCharacterName();
@@ -113,14 +112,14 @@ public class Character
         public void Increase(Characteristics otherChars, int amount=1)
         {
             var oldVal = value;
-            value = Mathf.Clamp(value + amount, definition.min, definition.max);
+            value = KMaths.Clamp(value + amount, definition.min, definition.max);
             definition.rules.onChange(otherChars, value - oldVal);
         }
 
         public void Decrease(Characteristics otherChars, int amount = 1)
         {
             var oldVal = value;
-            value = Mathf.Clamp(value - amount, definition.min, definition.max);
+            value = KMaths.Clamp(value - amount, definition.min, definition.max);
             definition.rules.onChange(otherChars, value - oldVal);
         }
 
@@ -136,7 +135,7 @@ public class Character
 
         public int GetClampedValue()
         {
-            return Mathf.Clamp(value, definition.min, definition.max);
+            return KMaths.Clamp(value, definition.min, definition.max);
         }
     }
 

@@ -1,8 +1,9 @@
 ﻿using csDelaunay;
 using Superbest_random;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using Logger = KingdomsSharedCode.Generic.Logger;
 
 public class Map
 {
@@ -40,7 +41,6 @@ public class Map
     {
         world = _world;
 
-        Random.InitState(parameters.seed);
         r = new System.Random(parameters.seed);
 
         // Create your sites (lets call that the center of your polygons)
@@ -60,7 +60,7 @@ public class Map
         Rectf bounds = new Rectf(0, 0, 1, 1);
 
         // There is a two ways you can create the voronoi diagram: with or without the lloyd relaxation
-        Voronoi voronoi = new Voronoi(points, bounds, Random.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
+        Voronoi voronoi = new Voronoi(points, bounds, r.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
 
         // But you could also create it without lloyd relaxtion and call that function later if you want
         //Voronoi voronoi = new Voronoi(points,bounds);
@@ -88,7 +88,7 @@ public class Map
             Region region = new Region(id, this, new List<Site>() { site });
             id++;
 
-            int size = Random.Range(parameters.minRegionSize, parameters.maxRegionSize);
+            int size = r.Range(parameters.minRegionSize, parameters.maxRegionSize);
 
             if (size > 0)
             {
@@ -109,7 +109,7 @@ public class Map
                         break;
                     }
 
-                    Site toBlob = blobCandidates[Mathf.FloorToInt(Random.value * blobCandidates.Count)];
+                    Site toBlob = blobCandidates[KMaths.FloorToInt(r.NextFloat() * blobCandidates.Count)];
                     region.sites.Add(toBlob);
                     occupiedSites.Add(toBlob);
 
@@ -162,7 +162,7 @@ public class Map
         List<Vector2f> points = new List<Vector2f>();
         for (int i = 0; i < parameters.polygonNumber; i++)
         {
-            var point = new Vector2f(Random.Range(0, 1), Random.Range(0, 1  ));
+            var point = new Vector2f(r.Range(0, 1), r.Range(0, 1  ));
             points.Add(point);
         }
 

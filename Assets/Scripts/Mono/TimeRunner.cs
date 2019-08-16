@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Logger = KingdomsSharedCode.Generic.Logger;
 
 public class TimeRunner : MonoBehaviour
 {

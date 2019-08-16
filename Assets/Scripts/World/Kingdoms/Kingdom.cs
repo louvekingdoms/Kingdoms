@@ -1,6 +1,7 @@
 ﻿using csDelaunay;
 using System.Collections;
 using System.Collections.Generic;
+using Logger = KingdomsSharedCode.Generic.Logger;
 
 public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 {

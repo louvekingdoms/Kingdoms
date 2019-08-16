@@ -1,13 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 [System.Serializable]
 public class Race
 {
     public override string ToString()
     {
-        return "[RACE:"+name+"]";
+        return "[RACE:{0}.{1}]".Format(name, id);
     }
 
     public int id = 0;
@@ -22,13 +21,13 @@ public class Race
     
     public string GetRandomKingdomName()
     {
-        return names.kingdoms.RandomElement();
+        return names.kingdoms.PickRandom(Game.state.random);
     }
 
     public Character.Name GetRandomCharacterName()
     {
-        var first = names.first.RandomElement();
-        var family = names.family.RandomElement();
+        var first = names.first.PickRandom(Game.state.random);
+        var family = names.family.PickRandom(Game.state.random);
         return new Character.Name(first, family, this);
     }
 

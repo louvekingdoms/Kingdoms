@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System;
 
 public static class Utility
 {
-    public static T RandomElement<T>(this List<T> list)
+    public static T PickRandom<T>(this List<T> list, Random r)
     {
-        return list[Random.Range(0, list.Count)];
+        return list[r.Range(0, list.Count)];
     }
 
     public static float Sum(this IEnumerable<float> list)
@@ -16,5 +16,25 @@ public static class Utility
             sum += element;
         }
         return sum;
+    }
+
+    public static int Range(this Random r, int a, int b)
+    {
+        return r.Next(a, b);
+    }
+
+    public static float Range(this Random r, float a, float b)
+    {
+        return (float)(a + r.NextDouble() * (b - a));
+    }
+
+    public static float NextFloat(this Random r)
+    {
+        return (float)r.NextDouble();
+    }
+
+    public static string Format(this string str, params object[] values)
+    {
+        return string.Format(str, values);
     }
 }

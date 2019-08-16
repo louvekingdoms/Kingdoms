@@ -26,10 +26,10 @@ public class WorldGenerator : MonoBehaviour
         world.map.Generate(parameters, world);
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
 
-        Game.world = world;
+        Game.state.world = world;
         
         // (game start)
-        foreach (var region in Game.world.map.regions) {
+        foreach (var region in Game.state.world.map.regions) {
             Region.behavior.onGameStart.Invoke(region);
         }
 

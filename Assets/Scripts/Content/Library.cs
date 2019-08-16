@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
+using System;
+using Logger = KingdomsSharedCode.Generic.Logger;
 
+[Serializable]
 public class Library
 {
     static public Dictionary<int, Race> races = new Dictionary<int, Race>();
@@ -27,7 +29,7 @@ public class Library
 
     static void LoadRegionBehavior()
     {
-        Region.behavior = Interpreter.ReadRegionBehavior(Disk.ReadAllText(Paths.RegionDefinitionsFile()));
+        //Region.behavior = Interpreter.ReadRegionBehavior(Disk.ReadAllText(Paths.RegionDefinitionsFile()));
     }
 
     static void LoadRaces()
@@ -51,17 +53,18 @@ public class Library
         try
         {
             var meta = Disk.ReadAllText(Paths.RaceMetafile(raceFolderName));
-            race = Interpreter.ReadRaceInfo(meta);
+            race = Interpreter.InitializeRace(meta);
+            Logger.Debug(race.ToString());
             races.Add(race.id, race);
         }
         catch (System.Exception e)
         {
             var msg = "ERROR WHILE LOADING A RACE META FILE : " + raceFolderName + "\n\n" + e.ToString();
             Logger.Error(msg);
-            Debug.LogError(msg);
             throw;
         }
 
+        /*
 
         ///
         ///     NAMES
@@ -104,6 +107,8 @@ public class Library
             Debug.LogError("ERROR WHILE LOADING RACE KINGDOM CREATION RULES : " + raceFolderName + "\n\n" + e.ToString());
             throw;
         }
+
+        */
 
     }
 }

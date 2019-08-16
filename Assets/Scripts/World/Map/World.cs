@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System;
 using Superbest_random;
 
+[Serializable]
 public class World
 {
     public Map map = new Map();
@@ -19,14 +20,13 @@ public class World
     {
         kingdoms.Clear();
 
-        var r = new System.Random(seed);
         for (int i = 0; i < amount; i++)
         {
             List<Region> territory = new List<Region>();
-            int size = 1+Mathf.FloorToInt((1 - Mathf.Clamp01(Mathf.Abs((float)r.NextGaussian()))) * maxSize) ;
-            Region startingRegion = map.regions[Mathf.FloorToInt(Random.value * map.regions.Count)];
+            int size = 1+KMaths.FloorToInt((1 - KMaths.Clamp01(Math.Abs((float)Game.state.random.NextGaussian()))) * maxSize) ;
+            Region startingRegion = map.regions[KMaths.FloorToInt(Game.state.random.NextFloat() * map.regions.Count)];
 
-            var race = Library.races[Random.Range(0, Library.races.Count)];
+            var race = Library.races[Game.state.random.Range(0, Library.races.Count)];
             Kingdom kingdom = new Kingdom(i, race.GetRandomKingdomName(), new List<Region>() { startingRegion }, race, Ruler.CreateRuler());
 
             for (int j = 0; j < size; j++)
@@ -39,7 +39,7 @@ public class World
                     break;
                 }
 
-                kingdom.TakeOwnership(blobCandidates[Mathf.FloorToInt(blobCandidates.Count*Random.value)]);
+                kingdom.TakeOwnership(blobCandidates[KMaths.FloorToInt(blobCandidates.Count* Game.state.random.NextFloat())]);
             }
 
             kingdoms.Add(kingdom);

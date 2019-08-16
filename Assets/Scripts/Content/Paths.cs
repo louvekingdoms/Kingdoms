@@ -1,11 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Paths
 {
     // PATHS
-    static readonly string basePath = Application.streamingAssetsPath;
+    static readonly string basePath = UnityEngine.Application.streamingAssetsPath;
     static readonly string racesPath = basePath+"/Races";
     static readonly string gamePath = basePath + "/Game";
     static readonly string kingdomPath = "Kingdom";
@@ -13,11 +12,11 @@ public class Paths
 
     // FILES
     static readonly string logFile = "kingdoms.log";
-    static readonly string namesFile = "Names.txt";
-    static readonly string rulerCreationRules = "RulerCreationRules.txt";
-    static readonly string behavior = "Behavior.txt";
-    static readonly string metafile = "Info.txt";
-    static readonly string regionFile = "Region.txt";
+    static readonly string namesFile = "Names.lua";
+    static readonly string rulerCreationRules = "RulerCreationRules.lua";
+    static readonly string behavior = "Behavior.lua";
+    static readonly string metafile = "Info.lua";
+    static readonly string regionFile = "Region.lua";
 
     // ACCESS
     public static string Races()
@@ -55,7 +54,7 @@ public class Paths
     }
     public static string LogPath()
     {
-        return Application.persistentDataPath + "/" + "logs";
+        return UnityEngine.Application.persistentDataPath + "/" + "logs";
     }
     public static string LogFile()
     {

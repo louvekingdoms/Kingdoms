@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class LoggerNetClient
 {
+    /*
     Thread mainThread;
     TcpClient socketConnection;
     Thread clientSendThread;
@@ -100,4 +101,5 @@ public class LoggerNetClient
             Logger.Error("Socket exception on sending : " + socketException);
         }
     }
+    */
 }
