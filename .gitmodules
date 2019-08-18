@@ -4,3 +4,6 @@
 [submodule "Assets/Scripts/RelayServer"]
 	path = Assets/Scripts/RelayServer
 	url = https://github.com/louvekingdoms/RelayServer
+[submodule "Assets/Scripts/Network/RelayServer"]
+	path = Assets/Scripts/Network/RelayServer
+	url = https://github.com/louvekingdoms/RelayServer
