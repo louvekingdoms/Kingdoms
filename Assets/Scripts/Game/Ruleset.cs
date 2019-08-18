@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System;
 
 public enum RULE {
     STARTING_KINGDOMS,
@@ -20,6 +20,7 @@ public interface IRuleValue
 
 #region IRules
 
+[Serializable]
 public class RuleFloat : IRuleValue
 {
     float value = 0f;
@@ -32,6 +33,7 @@ public class RuleFloat : IRuleValue
     public int GetInt() { throw new System.NotImplementedException(); }
 }
 
+[Serializable]
 public class RuleInt : IRuleValue
 {
     int value = 0;
@@ -44,6 +46,7 @@ public class RuleInt : IRuleValue
     public int GetInt() { return value; }
 }
 
+[Serializable]
 public class RuleBool : IRuleValue
 {
     bool value = false;
@@ -58,6 +61,7 @@ public class RuleBool : IRuleValue
 
 #endregion
 
+[Serializable]
 public class Ruleset : Dictionary<RULE, IRuleValue> {
     public Ruleset()
     {

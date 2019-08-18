@@ -2,13 +2,23 @@
 using MoonSharp.Interpreter.Loaders;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.IO;
+using Logger=KingdomsSharedCode.Generic.Logger;
 
 class ScriptLoader : ScriptLoaderBase
 {
+    string basePath;
+
+    public ScriptLoader(string basePath)
+    {
+        ModulePaths = new string[] { "?.lua" };
+        this.basePath = basePath;
+    }
+
     public override object LoadFile(string file, Table globalContext)
     {
-        return string.Format("print ([[A request to load '{0}' has been made]])", file);
+        Logger.Info("<SCRIPTLOADER> Module '{0}' was imported)".Format(file));
+        return Disk.ReadAllText(Path.Combine(basePath, file));
     }
 
     public override bool ScriptFileExists(string name)

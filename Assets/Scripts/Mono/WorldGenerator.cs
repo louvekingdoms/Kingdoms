@@ -15,6 +15,7 @@ public class WorldGenerator : MonoBehaviour
 
     private void Awake()
     {
+        Game.New();
         Library.Initialize();
         Ruleset rules = new Ruleset();
         Rules.LoadRuleset(rules);
@@ -22,8 +23,7 @@ public class WorldGenerator : MonoBehaviour
 
     void Start()
     {
-        world = new World(parameters.seed);
-        world.map.Generate(parameters, world);
+        world = World.Generate(parameters);
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
 
         Game.state.world = world;
@@ -41,10 +41,10 @@ public class WorldGenerator : MonoBehaviour
     public void Regenerate()
     {
         parameters.seed = Random.Range(0, 1000);
-        world = new World(parameters.seed);
 
-        world.map.Generate(parameters, world);
+        world = World.Generate(parameters);
         world.PopulateWithKingdoms(Rules.set[RULE.STARTING_KINGDOMS].GetInt(), Rules.set[RULE.MAX_STARTING_KINGDOM_STRENGTH].GetInt());
+        Game.state.world = world;
     }
 
     IEnumerator RefreshDiagram()

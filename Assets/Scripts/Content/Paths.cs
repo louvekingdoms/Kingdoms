@@ -12,10 +12,7 @@ public class Paths
 
     // FILES
     static readonly string logFile = "kingdoms.log";
-    static readonly string namesFile = "Names.lua";
-    static readonly string rulerCreationRules = "RulerCreationRules.lua";
-    static readonly string behavior = "Behavior.lua";
-    static readonly string metafile = "Info.lua";
+    static readonly string mainFile = "Main.lua";
     static readonly string regionFile = "Region.lua";
 
     // ACCESS
@@ -24,29 +21,13 @@ public class Paths
         return racesPath;
     }
 
-    public static string RaceMetafile(string raceFolderName)
+    public static string RaceMainFile(string raceFolderName)
     {
-        return RaceNames(raceFolderName) + "/"+ metafile;
+        return RaceNames(raceFolderName) + "/"+ mainFile;
     }
     public static string RaceNames(string raceFolderName)
     {
         return racesPath + "/" + raceFolderName;
-    }
-    public static string RaceKingdomNames(string raceFolderName)
-    {
-        return RaceNames(raceFolderName) + "/" + kingdomPath + "/" + namesFile;
-    }
-    public static string RaceCharacterNames(string raceFolderName)
-    {
-        return RaceNames(raceFolderName) + "/" + characterPath + "/" + namesFile;
-    }
-    public static string RaceRulerCreationRules(string raceFolderName)
-    {
-        return RaceNames(raceFolderName) + "/" + characterPath + "/" + rulerCreationRules;
-    }
-    public static string RaceKingdomGameBehavior(string raceFolderName)
-    {
-        return RaceNames(raceFolderName) + "/" + kingdomPath + "/" + behavior;
     }
     public static string RegionDefinitionsFile()
     {

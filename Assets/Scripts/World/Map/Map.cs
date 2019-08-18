@@ -5,15 +5,16 @@ using System.Collections;
 using System.Collections.Generic;
 using Logger = KingdomsSharedCode.Generic.Logger;
 
+[System.Serializable]
 public class Map
 {
     public List<Region> regions = new List<Region>();
-    public World world;
+    public World world { get; }
 
     Dictionary<Vector2f, Site> sites;
     List<Edge> edges;
-    System.Random r;
-
+    Random r;
+    
     public enum Frontier { DESERT, PEAKS, OCEAN, EMPIRE};
 
     [System.Serializable]
@@ -37,11 +38,12 @@ public class Map
         public Frontier rightFrontier;
     }
 
-    public void Generate(Parameters parameters, World _world)
+    public static Map Generate(Parameters parameters)
     {
-        world = _world;
+        var map = new Map();
 
-        r = new System.Random(parameters.seed);
+        Game.state.random = new Random(parameters.seed);
+        map.r = Game.state.random;
 
         // Create your sites (lets call that the center of your polygons)
         List<Vector2f> points = new List<Vector2f>();
@@ -60,20 +62,22 @@ public class Map
         Rectf bounds = new Rectf(0, 0, 1, 1);
 
         // There is a two ways you can create the voronoi diagram: with or without the lloyd relaxation
-        Voronoi voronoi = new Voronoi(points, bounds, r.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
+        Voronoi voronoi = new Voronoi(points, bounds, map.r.Range(parameters.minLloydIterations, parameters.maxLloydIterations));
 
         // But you could also create it without lloyd relaxtion and call that function later if you want
         //Voronoi voronoi = new Voronoi(points,bounds);
         //voronoi.LloydRelaxation(5);
 
         // Now retreive the edges from it, and the new sites position if you used lloyd relaxtion
-        sites = voronoi.SitesIndexedByLocation;
-        edges = voronoi.Edges;
+        map.sites = voronoi.SitesIndexedByLocation;
+        map.edges = voronoi.Edges;
 
-        regions = GenerateRegions(sites, parameters);
+        map.regions = GenerateRegions(map.sites, parameters, map);
+
+        return map;
     }
 
-    List<Region> GenerateRegions(Dictionary<Vector2f, Site> sites, Parameters parameters)
+    static List<Region> GenerateRegions(Dictionary<Vector2f, Site> sites, Parameters parameters, Map parentMap)
     {
         List<Region> regions = new List<Region>();
         List<Site> occupiedSites = new List<Site>();
@@ -85,10 +89,10 @@ public class Map
                 continue;
             }
 
-            Region region = new Region(id, this, new List<Site>() { site });
+            Region region = new Region(id, parentMap, new List<Site>() { site });
             id++;
 
-            int size = r.Range(parameters.minRegionSize, parameters.maxRegionSize);
+            int size = parentMap.r.Range(parameters.minRegionSize, parameters.maxRegionSize);
 
             if (size > 0)
             {
@@ -109,7 +113,7 @@ public class Map
                         break;
                     }
 
-                    Site toBlob = blobCandidates[KMaths.FloorToInt(r.NextFloat() * blobCandidates.Count)];
+                    Site toBlob = blobCandidates[KMaths.FloorToInt(parentMap.r.NextFloat() * blobCandidates.Count)];
                     region.sites.Add(toBlob);
                     occupiedSites.Add(toBlob);
 
@@ -137,14 +141,14 @@ public class Map
     }
 
 
-    List<Vector2f> CreateRandomGaussianPoints(Parameters parameters)
+    static List<Vector2f> CreateRandomGaussianPoints(Parameters parameters)
     {
         List<Vector2f> points = new List<Vector2f>();
 
         for (int i = 0; i < parameters.polygonNumber; i++)
         {
-            var x = (r.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
-            var y = (r.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
+            var x = (Game.state.random.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
+            var y = (Game.state.random.NextGaussian(parameters.mu, parameters.sigma) + parameters.sigma * 2);
             var point = new Vector2f(x, y);
             points.Add(point);
             if (point.x > 1 || point.y > 1) {
@@ -155,14 +159,14 @@ public class Map
         return points;
     }
 
-    List<Vector2f> CreateRandomPoints(Parameters parameters)
+    static List<Vector2f> CreateRandomPoints(Parameters parameters)
     {
         // Use Vector2f, instead of Vector2
         // Vector2f is pretty much the same than Vector2, but like you could run Voronoi in another thread
         List<Vector2f> points = new List<Vector2f>();
         for (int i = 0; i < parameters.polygonNumber; i++)
         {
-            var point = new Vector2f(r.Range(0, 1), r.Range(0, 1  ));
+            var point = new Vector2f(Game.state.random.Range(0, 1), Game.state.random.Range(0, 1  ));
             points.Add(point);
         }
 

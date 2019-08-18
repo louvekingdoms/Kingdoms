@@ -1,8 +1,10 @@
 ﻿using csDelaunay;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Logger = KingdomsSharedCode.Generic.Logger;
 
+[Serializable]
 public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 {
     List<Region> territory = new List<Region>();
@@ -15,6 +17,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     public UnityEngine.Color color;
     public Ruler ruler;
     public Resources resources;
+    public Map map {get; }
 
     public Kingdom(int id, string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
     {
@@ -31,6 +34,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 
         TakeOwnership(_territory);
         mainland = 0;
+        map = _territory[0].map;
 
         RegisterClockReceiver();
     }
@@ -39,8 +43,8 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     {
         resources = new Resources();
 
-        foreach (var def in mainRace.kingdomBehavior.resourceDefinitions.Keys) {
-            resources.Add(def, new Resource(mainRace.kingdomBehavior.resourceDefinitions[def]));
+        foreach (var def in mainRace.resourceDefinitions.Keys) {
+            resources.Add(def, new Resource(mainRace.resourceDefinitions[def]));
         }
 
     }
@@ -143,7 +147,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     {
         return mainRace;
     }
-
+    
     public void SetName(string _name)
     {
         var rnd = new System.Random(_name.GetHashCode());
@@ -155,7 +159,6 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 
     public class Behavior
     {
-        public ResourceDefinitions resourceDefinitions;
         public System.Action<Kingdom> onNewDay;
         public System.Action<Kingdom> onNewMonth;
         public System.Action<Kingdom> onNewYear;

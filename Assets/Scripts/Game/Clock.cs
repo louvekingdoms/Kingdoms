@@ -157,6 +157,7 @@ public class Clock
             }
             else {
                 currentDate.month = months[monthIndex];
+                currentDate.day = currentDate.month.GetDay(currentDay);
                 ExecuteInThread(ExecuteAllMonthlyEvents);
             }
         }

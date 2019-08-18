@@ -90,13 +90,15 @@ public class Character
         }
     }
 
+    [System.Serializable]
     public class CreationRules
     {
-        public CharacteristicDefinitions characteristicDefinitions;
+        public CharacteristicDefinitions characteristicDefinitions = new CharacteristicDefinitions();
         public int maximumLifespan = 60;
         public int majority = 16;
     }
 
+    [System.Serializable]
     // Varying characteristic
     public class Characteristic
     {
@@ -140,13 +142,15 @@ public class Character
     }
 
     // "set-in-stone" definition, rules, chara behavior
+    [System.Serializable]
     public class CharacteristicDefinition
     {
         public int min = 1;
         public int max = 10;
         public int cost = 1;
-        public Rules rules;
+        public Rules rules = new Rules();
 
+        [System.Serializable]
         public class Rules
         {
             // <current characteristics, concerned chara, amount of change>
@@ -157,9 +161,11 @@ public class Character
     }
 
     // static set of varying characteristics
+    [System.Serializable]
     public class Characteristics : Dictionary<string, Characteristic> { }
 
     // static definitions set
+    [System.Serializable]
     public class CharacteristicDefinitions : Dictionary<string, CharacteristicDefinition> { }
 
 }

@@ -7,6 +7,7 @@ using System.Linq;
 public class Region
 {
     public static Behavior behavior;
+    public static Resource.Definitions resourceDefinitions;
 
     public readonly int id;
     public List<Site> sites = new List<Site>();
@@ -33,8 +34,8 @@ public class Region
     {
         resources = new Resources();
 
-        foreach (var def in behavior.resourceDefinitions.Keys) {
-            resources.Add(def, new Resource(behavior.resourceDefinitions[def]));
+        foreach (var def in resourceDefinitions.Keys) {
+            resources.Add(def, new Resource(resourceDefinitions[def]));
         }
     }
 
@@ -114,7 +115,6 @@ public class Region
 
     public class Behavior
     {
-        public ResourceDefinitions resourceDefinitions;
         public System.Action<Region> onGameStart;
         public System.Action<Region> onNewDay;
         public System.Action<Region> onNewMonth;

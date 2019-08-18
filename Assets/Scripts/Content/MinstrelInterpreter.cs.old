@@ -465,16 +465,16 @@ public static class MinstrelInterpreter
         new NamedAction<Region.Behavior>("ON_GAME_START", (rules, content) => { rules.onGameStart = (region) => { context["REGION"] = region.id.ToString(); ReadActions(content.Truncate()).Invoke(); }; })
     );    
 
-    static ActionTable<ResourceDefinition> resourceDefinitionElements = new ActionTable<ResourceDefinition>(
-        new NamedAction<ResourceDefinition>("MIN", (def, content) => { def.min = ToNumber(content); }),
-        new NamedAction<ResourceDefinition>("MAX", (def, content) => { def.max = ToNumber(content); }),
-        new NamedAction<ResourceDefinition>("START", (def, content) => { def.start = ToNumber(content); }),
-        new NamedAction<ResourceDefinition>("RULES", (def, content) => {
+    static ActionTable<Resource.Definition> resourceDefinitionElements = new ActionTable<Resource.Definition>(
+        new NamedAction<Resource.Definition>("MIN", (def, content) => { def.min = ToNumber(content); }),
+        new NamedAction<Resource.Definition>("MAX", (def, content) => { def.max = ToNumber(content); }),
+        new NamedAction<Resource.Definition>("START", (def, content) => { def.start = ToNumber(content); }),
+        new NamedAction<Resource.Definition>("RULES", (def, content) => {
             content.Truncate().LoadRelations(resourceDefinitionElements, def);
         }),
         // Rules
-        new NamedAction<ResourceDefinition>("NO_MODIFIERS", (def, content) => { def.noModifiers = StringToBool(content); }),
-        new NamedAction<ResourceDefinition>("IS_MUTABLE", (def, content) => { def.isMutable = StringToBool(content); })
+        new NamedAction<Resource.Definition>("NO_MODIFIERS", (def, content) => { def.noModifiers = StringToBool(content); }),
+        new NamedAction<Resource.Definition>("IS_MUTABLE", (def, content) => { def.isMutable = StringToBool(content); })
     );
 
     #endregion
@@ -687,9 +687,9 @@ public static class MinstrelInterpreter
         return rules;
     }
 
-    public static ResourceDefinitions ReadResourceDefinitions(string resources)
+    public static Resource.Definitions ReadResourceDefinitions(string resources)
     {
-        var definitions = new ResourceDefinitions();
+        var definitions = new Resource.Definitions();
         var saneChunk = resources.Truncate();
         foreach (var chunk in saneChunk.ExplodeChunk(new char[][] { ensembleMarkers, functionMarkers })) {
             var relation = SeparateRelation(chunk);
@@ -699,9 +699,9 @@ public static class MinstrelInterpreter
         return definitions;
     }
 
-    public static ResourceDefinition ReadResourceDefinition(string chunk, string rscName)
+    public static Resource.Definition ReadResourceDefinition(string chunk, string rscName)
     {
-        var def = new ResourceDefinition();
+        var def = new Resource.Definition();
         chunk.LoadRelations(resourceDefinitionElements, def);
         return def;
     }

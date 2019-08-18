@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 
 [System.Serializable]
 public class Race
@@ -15,8 +16,9 @@ public class Race
     public string characterNameFormat = "{0} {1}";
     public string rulerTitle;
     public bool isPlayable = true;
-    public Ruler.CreationRules rulerCreationRules;
-    public Kingdom.Behavior kingdomBehavior;
+    public Ruler.CreationRules rulerCreationRules = new Ruler.CreationRules();
+    public Kingdom.Behavior kingdomBehavior = new Kingdom.Behavior();
+    public Resource.Definitions resourceDefinitions = new Resource.Definitions();
     public Names names = new Names();
     
     public string GetRandomKingdomName()
@@ -37,6 +39,7 @@ public class Race
         return string.Empty;
     }
 
+    [Serializable]
     public class Names {
         public List<string> kingdoms = new List<string>();
         public List<string> first = new List<string>();

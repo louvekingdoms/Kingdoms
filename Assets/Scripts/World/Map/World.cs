@@ -6,14 +6,15 @@ using Superbest_random;
 [Serializable]
 public class World
 {
-    public Map map = new Map();
+    public Map map;
     public List<Kingdom> kingdoms = new List<Kingdom>();
-
-    public int seed { get; }
-
-    public World(int _seed)
+    
+    public static World Generate(Map.Parameters paraneters)
     {
-        seed = _seed;
+        var world = new World();
+        world.map = Map.Generate(paraneters);
+
+        return world;
     }
 
     public void PopulateWithKingdoms(int amount, int maxSize=1)

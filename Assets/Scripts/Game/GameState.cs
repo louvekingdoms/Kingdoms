@@ -10,6 +10,7 @@ public class GameState
     public int seed;
     public World world;
     public string librarySum;
+    public Ruleset ruleset = Rules.set;
 
     public string Sum()
     {

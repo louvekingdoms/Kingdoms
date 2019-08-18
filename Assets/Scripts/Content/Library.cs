@@ -29,7 +29,7 @@ public class Library
 
     static void LoadRegionBehavior()
     {
-        //Region.behavior = Interpreter.ReadRegionBehavior(Disk.ReadAllText(Paths.RegionDefinitionsFile()));
+        Interpreter.LoadRegion(Paths.RegionDefinitionsFile());
     }
 
     static void LoadRaces()
@@ -45,70 +45,17 @@ public class Library
     static void LoadRaceFromFolder(string raceFolderName)
     {
         Race race;
-
-        //////////////////////
-        ///
-        ///     META AND CULTURAL INFO LOADING
-        ///
         try
         {
-            var meta = Disk.ReadAllText(Paths.RaceMetafile(raceFolderName));
-            race = Interpreter.InitializeRace(meta);
-            Logger.Debug(race.ToString());
+            race = Interpreter.LoadRace(Paths.RaceMainFile(raceFolderName));
+            Logger.Debug(race.rulerCreationRules.characteristicDefinitions.Count.ToString());
             races.Add(race.id, race);
         }
-        catch (System.Exception e)
+        catch (MoonSharp.Interpreter.InterpreterException e)
         {
-            var msg = "ERROR WHILE LOADING A RACE META FILE : " + raceFolderName + "\n\n" + e.ToString();
+            var msg = "ERROR while loading race data: " + raceFolderName + "\n\n" + e.ToString();
             Logger.Error(msg);
             throw;
         }
-
-        /*
-
-        ///
-        ///     NAMES
-        ///
-        try
-        {
-            race = Interpreter.LoadRaceNames(race, Disk.ReadAllText(Paths.RaceKingdomNames(raceFolderName)));
-            race = Interpreter.LoadRaceNames(race, Disk.ReadAllText(Paths.RaceCharacterNames(raceFolderName)));
-        }
-        catch(System.Exception e) {
-            var msg = "ERROR WHILE LOADING RACE NAMES : " + raceFolderName + "\n\n" + e.ToString();
-            Logger.Error(msg);
-            Debug.LogError(msg);
-            throw;
-        }
-
-        //
-        //  CREATION RULES
-        //
-        try
-        {
-            var creationRules = Disk.ReadAllText(Paths.RaceRulerCreationRules(raceFolderName));
-            race.rulerCreationRules = Interpreter.ReadRulerCreationRules(creationRules);
-        }
-        catch (System.Exception e) {
-            var msg = "ERROR WHILE LOADING RACE CREATION RULES : " + raceFolderName + "\n\n" + e.ToString();
-            Logger.Error(msg);
-            Debug.LogError(msg);
-            throw;
-        }
-
-        ///
-        /// KINGDOM RULES
-        ///
-        try {
-            var textRules = Disk.ReadAllText(Paths.RaceKingdomGameBehavior(raceFolderName));
-            race.kingdomBehavior = Interpreter.ReadKingdomBehavior(textRules);
-        }
-        catch (System.Exception e) {
-            Debug.LogError("ERROR WHILE LOADING RACE KINGDOM CREATION RULES : " + raceFolderName + "\n\n" + e.ToString());
-            throw;
-        }
-
-        */
-
     }
 }

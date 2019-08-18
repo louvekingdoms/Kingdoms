@@ -18,6 +18,11 @@ public static class Game
         Logger.SetConsoleFunction(UnityEngine.Debug.Log);
     }
 
+    public static void New()
+    {
+        state = new GameState();
+    }
+
     public static bool IsRunningInMainThread()
     {
         return Thread.CurrentThread == mainThread;

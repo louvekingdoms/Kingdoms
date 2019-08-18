@@ -26,6 +26,7 @@ public class Ruler : Character
         return r;
     }
 
+    [System.Serializable]
     public new class CreationRules : Character.CreationRules
     {
         public int stock = 15;
