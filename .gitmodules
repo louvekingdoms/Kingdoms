@@ -1,3 +1,6 @@
 [submodule "Assets/Scripts/KingdomsSharedCode"]
 	path = Assets/Scripts/KingdomsSharedCode
 	url = https://github.com/louvekingdoms/KingdomsSharedCode
+[submodule "Assets/Scripts/RelayServer"]
+	path = Assets/Scripts/RelayServer
+	url = https://github.com/louvekingdoms/RelayServer
