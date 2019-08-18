@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class Character
 {
@@ -93,7 +94,7 @@ public class Character
     [System.Serializable]
     public class CreationRules
     {
-        public CharacteristicDefinitions characteristicDefinitions = new CharacteristicDefinitions();
+         public CharacteristicDefinitions characteristicDefinitions = new CharacteristicDefinitions();
         public int maximumLifespan = 60;
         public int majority = 16;
     }
@@ -103,7 +104,7 @@ public class Character
     public class Characteristic
     {
         int value;
-        public readonly CharacteristicDefinition definition;
+         public readonly CharacteristicDefinition definition;
 
         public Characteristic(CharacteristicDefinition _definition)
         {

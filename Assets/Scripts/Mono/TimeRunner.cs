@@ -9,34 +9,30 @@ public class TimeRunner : MonoBehaviour
     public int yearLength;
     public int monthCount;
     public TextMeshProUGUI display;
-    public float yearDurationSeconds = 100f; 
+    [Range(1, 10)] public int beatsPerDay = 5;
 
     float i;
 
     // Start is called before the first frame update
     void Awake()
     {
-        Game.clock = new Clock(Rules.set[RULE.DAYS_IN_YEAR].GetInt(), Rules.set[RULE.MONTHS_IN_YEAR].GetInt());
+        Game.clock = new Clock();
+        Game.clock.SetCalendar(Rules.set[RULE.DAYS_IN_YEAR].GetInt(), Rules.set[RULE.MONTHS_IN_YEAR].GetInt());
+    }
+
+    private void Start()
+    {
+        Game.clock.Start();
     }
 
     // Update is called once per frame
     void Update()
     {
-        Game.clock.SetYearDurationSeconds(yearDurationSeconds);
-        var incrementer = Time.deltaTime / Game.clock.GetTimeScale() ;
-        i += incrementer;
+        Game.clock.SetBeatsPerDay(beatsPerDay);
 
-        if (i > 1f) {
-            var adv = Game.clock.Advance();
-            if (!adv) {
-                Logger.Warn("The clock is running behind! Date is "+ Game.clock.GetDate().ToString()+", timescale is "+ Game.clock.GetTimeScale()+". Skipping advance...");
-            }
-            i = 0f;
-            display.color = !adv ? Color.red : Color.white;
-        }
-
-        if (display != null) {
-            display.text = Game.clock.GetDate().ToString();
+        if (display != null)
+        {
+            display.text = Game.clock.GetDate().ToString()+" - "+Game.state.Sum();
         }
     }
 }

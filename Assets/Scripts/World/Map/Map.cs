@@ -1,18 +1,19 @@
 ﻿using csDelaunay;
+using Newtonsoft.Json;
 using Superbest_random;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Logger = KingdomsSharedCode.Generic.Logger;
 
-[System.Serializable]
+[Serializable]
 public class Map
 {
     public List<Region> regions = new List<Region>();
-    public World world { get; }
+     public World world { get; }
 
-    Dictionary<Vector2f, Site> sites;
-    List<Edge> edges;
+     Dictionary<Vector2f, Site> sites;
+     List<Edge> edges;
     Random r;
     
     public enum Frontier { DESERT, PEAKS, OCEAN, EMPIRE};

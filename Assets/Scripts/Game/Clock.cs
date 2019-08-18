@@ -1,7 +1,9 @@
 ﻿using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Threading.Tasks;
+using System;
+using KingdomsSharedCode.Generic;
 
 public class Clock
 {
@@ -10,6 +12,7 @@ public class Clock
     public interface IMonthly : IClockReceiver { void OnNewMonth(); }
     public interface IYearly : IClockReceiver { void OnNewYear(); }
 
+    #region Calendar-related classes
     public class Date
     {
         public int year;
@@ -68,28 +71,105 @@ public class Clock
             return (month.GetDayLocalIndex(this) + 1).ToString();
         }
     }
+    #endregion
 
-    public event System.Action onCalculationEnd;
+    public event Action onCalculationEnd;
 
-    float timeScale = 1f; // Duration of a day in real seconds
+    int minBeatDuration = 200; // Duration of a BEAT in mili seconds
+    int beatsPerDay = 5; // How many beats in a day
+    bool isPaused = false;
+    Thread beatThread;
+    Dictionary<byte, List<Action>> beatActions = new Dictionary<byte, List<Action>>();
+    ushort currentBeat = 0;
+
+    int currentBeatsInCurrentDay = 0;
+    
     int daysInAYear = 365;
     int monthsInAYear = 12;
-    float yearDurationInSeconds = 100f;
+
     List<Day> days = new List<Day>();
     List<Month> months = new List<Month>();
     Date currentDate;
-    bool isRunning = false;
     List<Thread> threads = new List<Thread>();
     List<IClockReceiver> clockEventsReceivers = new List<IClockReceiver>();
 
-    public Clock(int daysInAYear, int monthsInAYear)
+    public Clock()
+    {
+        beatThread = new Thread((ThreadStart)async delegate {
+            
+            while (true)
+            {
+                if (isPaused) continue;
+                await Task.Delay(minBeatDuration);
+
+                if (isPaused) continue;
+
+                await AdvanceBeat();
+                ExecuteBeat();
+            }
+        });
+    }
+
+    public void Start(ushort beat = 0)
+    {
+        currentBeat = beat;
+        beatThread.Start();
+        Play();
+    }
+
+    public void Pause()
+    {
+        isPaused = true;
+    }
+
+    public void Play()
+    {
+        isPaused = false;
+    }
+
+    async Task AdvanceBeat()
+    {
+        currentBeatsInCurrentDay++;
+        if (currentBeatsInCurrentDay >= beatsPerDay)
+        {
+            currentBeatsInCurrentDay = 0;
+            await AdvanceDate();
+        }
+        currentBeat++;
+    }
+
+    void ExecuteBeat()
+    {
+        if (beatActions.ContainsKey(GetByteBeat()) && beatActions[GetByteBeat()] != null)
+        {
+            foreach (var act in beatActions[GetByteBeat()])
+                act.Invoke();
+
+            beatActions[GetByteBeat()].Clear();
+        }
+    }
+
+    public byte GetByteBeat()
+    {
+        return currentBeat.ToByte();
+    }
+
+    public ushort GetBeat()
+    {
+        return currentBeat;
+    }
+
+    public void SetBeatsPerDay(int beatsPerDay)
+    {
+        this.beatsPerDay = beatsPerDay;
+    }
+
+    public void SetCalendar(int daysInAYear, int monthsInAYear)
     {
         this.daysInAYear = daysInAYear;
         this.monthsInAYear = monthsInAYear;
 
         MakeCalendar();
-
-        RecalculateScale();
     }
     
     public void RegisterClockReceiver(IClockReceiver eventReceiver)
@@ -97,28 +177,12 @@ public class Clock
         clockEventsReceivers.Add(eventReceiver);
     }
 
-    void RecalculateScale()
-    {
-        timeScale = yearDurationInSeconds / daysInAYear;
-    }
-
-    public float GetTimeScale()
-    {
-        return timeScale;
-    }
-
-    public void SetYearDurationSeconds(float yds)
-    {
-        yearDurationInSeconds = yds;
-        RecalculateScale();
-    }
-
     void MakeCalendar()
     {
         months.Clear();
         days.Clear();
         for (int i = 0; i < daysInAYear; i++) {
-            var currentMonthIndex = Mathf.FloorToInt((i / ((float)daysInAYear)) * monthsInAYear);
+            var currentMonthIndex = KMaths.FloorToInt((i / ((float)daysInAYear)) * monthsInAYear);
             if (months.Count <= currentMonthIndex) months.Add(new Month(currentMonthIndex));
             var month = months[currentMonthIndex];
             var day = new Day(i);
@@ -133,10 +197,10 @@ public class Clock
         };
     }
 
-    public bool Advance()
+    public async Task AdvanceDate()
     {
-        if (AreCalculationsStillRunning()) {
-            return false;
+        while (AreCalculationsStillRunning()) {
+            await Task.Delay(10);
         }
 
         int currentDay = currentDate.month.GetDayLocalIndex(currentDate.day);
@@ -165,8 +229,6 @@ public class Clock
             currentDate.day = currentDate.month.GetDay(currentDay);
             ExecuteInThread(ExecuteAllDailyEvents);
         }
-
-        return true;
     }
 
     void CheckThreads()
@@ -192,7 +254,7 @@ public class Clock
         }
     }
 
-    void ExecuteInThread(System.Action function)
+    void ExecuteInThread(Action function)
     {
         var dailyThread = new Thread(new ThreadStart(function));
         dailyThread.IsBackground = true;

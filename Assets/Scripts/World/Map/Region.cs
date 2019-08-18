@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using csDelaunay;
 using System.Linq;
+using Newtonsoft.Json;
 
 public class Region
 {
@@ -10,10 +11,10 @@ public class Region
     public static Resource.Definitions resourceDefinitions;
 
     public readonly int id;
-    public List<Site> sites = new List<Site>();
+     public List<Site> sites = new List<Site>();
     public int capital;
-    public Map map { get; }
-    public Kingdom owner = null;
+     public Map map { get; }
+     public Kingdom owner = null;
     public Resources resources;
 
     public float elevation = 0f;

@@ -1,7 +1,9 @@
 ﻿using csDelaunay;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using Logger = KingdomsSharedCode.Generic.Logger;
 
 [Serializable]
@@ -14,10 +16,10 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     public int mainland;
     public string name;
     public string demonym;
-    public UnityEngine.Color color;
+    public Color color;
     public Ruler ruler;
     public Resources resources;
-    public Map map {get; }
+     public Map map {get; }
 
     public Kingdom(int id, string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
     {
@@ -138,7 +140,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 #endregion
 
 
-    public UnityEngine.Color GetColor()
+    public Color GetColor()
     {
         return color;
     }
@@ -154,14 +156,14 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 
         Logger.Debug("Kingdom " + GetDebugSignature() + " is now named ["+_name+"]") ;
         name = _name;
-        color = UnityEngine.Color.HSVToRGB((float)rnd.NextDouble(), ((float)rnd.NextDouble()) / 3f + 0.3f, ((float)rnd.NextDouble()) / 5f + 0.5f);
+        color = Utility.ColorFromHSV(rnd.NextFloat(), (rnd.NextFloat()) / 3f + 0.3f, ((float)rnd.NextFloat()) / 5f + 0.5f);
     }
 
     public class Behavior
     {
-        public System.Action<Kingdom> onNewDay;
-        public System.Action<Kingdom> onNewMonth;
-        public System.Action<Kingdom> onNewYear;
+        public Action<Kingdom> onNewDay;
+        public Action<Kingdom> onNewMonth;
+        public Action<Kingdom> onNewYear;
     }
 
     public string GetDebugSignature()
