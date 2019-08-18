@@ -4,23 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-
 
 static class Safety
 {
-    public static string Hash(this object data)
+    public static string Hash(this byte[] data)
     {
         using (MD5 engine = MD5.Create())
         {
             byte[] buffer;
-            if (!data.GetType().IsSerializable)
-                buffer = engine.ComputeHash(Encoding.UTF8.GetBytes(data.ToString()));
-            else
-            {
-                var obj = JsonConvert.SerializeObject(data);
-                buffer = engine.ComputeHash(Encoding.UTF8.GetBytes(obj));
-            }
+            buffer = engine.ComputeHash(data);
 
             StringBuilder sBuilder = new StringBuilder();
 

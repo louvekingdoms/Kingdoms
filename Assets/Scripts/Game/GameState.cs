@@ -14,7 +14,11 @@ public class GameState
 
     public string Sum()
     {
-        return Safety.Hash(this);
+        List<byte> bytes = new List<byte>();
+
+        // Manual regrouping of data and then putting all the bytes one after each other
+
+        return Safety.Hash(bytes.ToArray());
     }
 
 
