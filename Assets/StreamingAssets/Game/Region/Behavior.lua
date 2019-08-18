@@ -19,10 +19,8 @@ end
 
 
 local function onNewMonth(region)
-	print("aaaaa")
 	local popIncrease = getStructurePercent(region) * populationGrowthAmplitude
 	region.resources["population"].Increase(popIncrease)
-	print(popIncrease)
 end
 
 

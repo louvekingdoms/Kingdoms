@@ -15,10 +15,8 @@ public class WorldGenerator : MonoBehaviour
 
     private void Awake()
     {
-        Game.New();
-        Library.Initialize();
-        Ruleset rules = new Ruleset();
-        Rules.LoadRuleset(rules);
+        Game.Start();
+        Game.clock.Start();
     }
 
     void Start()
@@ -58,5 +56,10 @@ public class WorldGenerator : MonoBehaviour
 
     void ResetDiagram()
     {
+    }
+
+    private void OnApplicationQuit()
+    {
+        Game.KillThreads();
     }
 }      
