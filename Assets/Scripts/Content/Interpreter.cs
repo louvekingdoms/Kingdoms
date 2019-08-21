@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using KingdomsSharedCode.Generic;
-using Logger = KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 using System.IO;
 using System;
 using System.Linq;
@@ -63,7 +63,7 @@ public static class Interpreter
         Script script = new Script(CoreModules.Preset_HardSandbox | CoreModules.LoadMethods);
         
         script.Options.ScriptLoader = new ScriptLoader(basePath);
-        script.Options.DebugPrint = (string o) => { Logger.Info("<LUA> "+o); };
+        script.Options.DebugPrint = (string o) => { logger.Info("<LUA> "+o); };
 
 
         script.SetAliases();

@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
-using Logger = KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 public class Ruler : Character
 {
-    public class NoKingdomException : System.Exception { public NoKingdomException(string message) : base(message) { Logger.Error(message); } }
+    public class NoKingdomException : System.Exception { public NoKingdomException(string message) : base(message) { logger.Error(message); } }
 
     public Ruler(Name _name, Race _race, int _birthDate = 0, int _age = 0) : base (_name, _race, _birthDate, _age)
     {

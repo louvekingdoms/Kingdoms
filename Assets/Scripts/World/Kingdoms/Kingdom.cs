@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using Logger = KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 [Serializable]
 public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
@@ -32,7 +32,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 
         LoadResourcesDefinitions();
 
-        Logger.Debug("Kingdom " + GetDebugSignature() + " (ruled by " + _ruler.name + ":" + _ruler.GetHashCode() + ") is born");
+        logger.Debug("Kingdom " + GetDebugSignature() + " (ruled by " + _ruler.name + ":" + _ruler.GetHashCode() + ") is born");
 
         TakeOwnership(_territory);
         mainland = 0;
@@ -68,7 +68,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
                 region.owner.RemoveOwnership(region);
             }
 
-            Logger.Debug("Kingdom " + GetDebugSignature() + " took ownership of region " + region.GetHashCode() + (region.owner==null? "" : ". It previously belonged to " + region.owner.GetDebugSignature()));
+            logger.Debug("Kingdom " + GetDebugSignature() + " took ownership of region " + region.GetHashCode() + (region.owner==null? "" : ". It previously belonged to " + region.owner.GetDebugSignature()));
             region.owner = this;
         }
     }
@@ -79,7 +79,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     {
         foreach (Region region in regions)
         {
-            if (territory.Contains(region)) Logger.Debug("Kingdom " + GetDebugSignature() + " lost ownership of region " + region.GetHashCode()); ;
+            if (territory.Contains(region)) logger.Debug("Kingdom " + GetDebugSignature() + " lost ownership of region " + region.GetHashCode()); ;
             territory.RemoveAll(o => o == region);
         }
     }
@@ -154,7 +154,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     {
         var rnd = new System.Random(_name.GetHashCode());
 
-        Logger.Debug("Kingdom " + GetDebugSignature() + " is now named ["+_name+"]") ;
+        logger.Debug("Kingdom " + GetDebugSignature() + " is now named ["+_name+"]") ;
         name = _name;
         color = Utility.ColorFromHSV(rnd.NextFloat(), (rnd.NextFloat()) / 3f + 0.3f, ((float)rnd.NextFloat()) / 5f + 0.5f);
     }

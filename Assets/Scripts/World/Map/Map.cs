@@ -4,7 +4,7 @@ using Superbest_random;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Logger = KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 [Serializable]
 public class Map
@@ -136,7 +136,7 @@ public class Map
             regions.Add(region);
         }
 
-        Logger.Info("Generated " + regions.Count + " regions from "+ sites.Count+" sites");
+        logger.Info("Generated " + regions.Count + " regions from "+ sites.Count+" sites");
 
         return regions;
     }
@@ -153,7 +153,7 @@ public class Map
             var point = new Vector2f(x, y);
             points.Add(point);
             if (point.x > 1 || point.y > 1) {
-                Logger.Warn("Warning out of bounds region : " + point);
+                logger.Warn("Warning out of bounds region : " + point);
             }
         }
 

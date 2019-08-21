@@ -12,14 +12,21 @@ public class GameState
     public string librarySum;
     public Ruleset ruleset = Rules.set;
 
-    public string Sum()
+    byte[] lastSum = null;
+
+    public byte[] Sum()
     {
         List<byte> bytes = new List<byte>();
 
         // Manual regrouping of data and then putting all the bytes one after each other
+        // TODO
 
-        return Safety.Hash(bytes.ToArray());
+        lastSum = Safety.Hash(bytes.ToArray());
+        return GetLastSum();
     }
 
-
+    public byte[] GetLastSum()
+    {
+        return new List<byte>(lastSum).ToArray();
+    }
 }

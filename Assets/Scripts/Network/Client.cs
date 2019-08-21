@@ -16,6 +16,7 @@ namespace Kingdoms.Network {
     public class Client
     {
         public readonly int HEARTBEAT_FREQUENCY = 200;
+        public static Logger logger;
 
         Socket client;
 
@@ -42,11 +43,12 @@ namespace Kingdoms.Network {
         {
             client = new Socket(SocketType.Stream, ProtocolType.Tcp);
             client.Connect(IPAddress.Parse(addr), port);
-            Logger.Info("Connected on " + addr + ":" + port);
+            logger.Info("Connected on " + addr + ":" + port);
         }
 
         public void Run()
         {
+            logger.Debug("Starting heartbeat for client and listening");
             heartbeatInterval = new System.Threading
                 .Timer(
                 e => {
@@ -54,15 +56,16 @@ namespace Kingdoms.Network {
                     {
                         if (!stream.CanWrite)
                         {
-                            Logger.Warn("Stream closed, reinitializing client...");
+                            logger.Warn("Stream closed, reinitializing client...");
                             Initialize();
                             return;
                         }
 
-                        stream.Write(new Message()
+                        WriteToStream(stream, new Message()
                         {
                             controller = (byte)RELAY_HEARTBEAT,
                             session = session,
+                            sumAtBeat = Game.state == null ? null : Game.state.Sum(),
                             body = Game.clock.GetBeat().ToString()
                         });
                     }
@@ -80,6 +83,7 @@ namespace Kingdoms.Network {
                         using (BinaryReader reader = new BinaryReader(clientStream, Encoding.UTF8, leaveOpen: true))
                         {
                             var msg = new Message(reader);
+                            logger.Trace("<< " + msg);
                             ExecuteMessage(msg);
                         }
             }
@@ -90,14 +94,14 @@ namespace Kingdoms.Network {
 
         void ExecuteMessage(Message message)
         {
-            Logger.Trace("RECEIVED: " + message);
+            logger.Trace("RECEIVED: " + message);
             if (ControllerSet.set.ContainsKey(message.controller))
             {
                 ControllerSet.set[message.controller].Execute(this, message);
             }
             else
             {
-                Logger.Error("No such controller as " + message.controller);
+                logger.Error("No such controller as " + message.controller);
                 ControllerSet.relay.Execute(this, message);
             }
         }
@@ -106,7 +110,7 @@ namespace Kingdoms.Network {
         {
             using (NetworkStream stream = client.NewStream())
             {
-                stream.Write(new Message()
+                WriteToStream(stream, new Message()
                 {
                     controller = (byte)RELAY_JOIN_SESSION,
                     body = id.ToString()
@@ -123,7 +127,7 @@ namespace Kingdoms.Network {
                 {
                     controller = (byte)RELAY_HOST_SESSION
                 };
-                stream.Write(msg);
+                WriteToStream(stream, msg);
             }
         }
 
@@ -137,14 +141,14 @@ namespace Kingdoms.Network {
                     body = message,
                     session = session
                 };
-                stream.Write(msg);
+                WriteToStream(stream, msg);
             }
         }
 
         public void LeaveCurrentSession()
         {
             using (NetworkStream stream = client.NewStream())
-                stream.Write(new Message()
+                WriteToStream(stream, new Message()
                 {
                     controller = (byte)RELAY_LEAVE_SESSION,
                     session = session
@@ -154,7 +158,7 @@ namespace Kingdoms.Network {
 
         public void SetSession(uint id, ushort beat)
         {
-            Logger.Info("Entering session " + id.ToString("X") + " at beat " + beat);
+            logger.Info("Entering session " + id.ToString("X") + " at beat " + beat);
             Game.clock.Start(beat);
             hasSession = true;
             session = id;
@@ -162,7 +166,7 @@ namespace Kingdoms.Network {
 
         void UnsetSession()
         {
-            Logger.Info("Exiting " + session.ToString("X"));
+            logger.Info("Exiting " + session.ToString("X"));
             Game.clock.Pause();
             hasSession = false;
         }
@@ -170,6 +174,12 @@ namespace Kingdoms.Network {
         public void Kill()
         {
             shouldRun = false;
+        }
+
+        void WriteToStream(NetworkStream stream, Message msg)
+        {
+            logger.Trace(">> "+msg);
+            stream.Write(msg);
         }
     }
 }

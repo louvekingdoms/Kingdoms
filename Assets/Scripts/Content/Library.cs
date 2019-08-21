@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System;
-using Logger = KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 [Serializable]
 public class Library
@@ -11,7 +11,7 @@ public class Library
 
     static public void Initialize()
     {
-        Logger.Info("Initializing library");
+        logger.Info("Initializing library");
         Clear();
         Load();
     }
@@ -48,13 +48,13 @@ public class Library
         try
         {
             race = Interpreter.LoadRace(Paths.RaceMainFile(raceFolderName));
-            Logger.Debug(race.rulerCreationRules.characteristicDefinitions.Count.ToString());
+            logger.Debug(race.rulerCreationRules.characteristicDefinitions.Count.ToString());
             races.Add(race.id, race);
         }
         catch (MoonSharp.Interpreter.InterpreterException e)
         {
             var msg = "ERROR while loading race data: " + raceFolderName + "\n\n" + e.ToString();
-            Logger.Error(msg);
+            logger.Error(msg);
             throw;
         }
     }

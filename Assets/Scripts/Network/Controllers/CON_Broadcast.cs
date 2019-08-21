@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using KingdomsSharedCode.Networking;
-using static KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 namespace Kingdoms.Network.Controllers
 {
@@ -13,7 +13,7 @@ namespace Kingdoms.Network.Controllers
     {
         public override void Execute(Client me, Message message)
         {
-            Debug("Received broadcast: " + message.body);
+            logger.Debug("Received broadcast: " + message.body);
         }
     }
 }

@@ -3,7 +3,7 @@ using MoonSharp.Interpreter.Loaders;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Logger=KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 class ScriptLoader : ScriptLoaderBase
 {
@@ -17,7 +17,7 @@ class ScriptLoader : ScriptLoaderBase
 
     public override object LoadFile(string file, Table globalContext)
     {
-        Logger.Info("<SCRIPTLOADER> Module '{0}' was imported)".Format(file));
+        logger.Info("<SCRIPTLOADER> Module '{0}' was imported)".Format(file));
         return Disk.ReadAllText(Path.Combine(basePath, file));
     }
 

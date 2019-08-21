@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static Geometry;
-using Logger = KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
 public static class Pencil
 {
@@ -99,7 +99,7 @@ public static class Pencil
                 uv.CheckValue(new Vector2(width, height) * unit);
             }
             catch (OutOfUVException e) {
-                Logger.Debug("This error can be safely ignored. " + e.Message);
+                logger.Trace("This error can be safely ignored. " + e.Message);
                 continue;
             }
             var left = uv.x - (width / 2) * unit.x;

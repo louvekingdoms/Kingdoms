@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System;
 
-using Logger=KingdomsSharedCode.Generic.Logger;
+using static GameLogger;
 
+using KingdomsSharedCode.Generic;
 using Kingdoms.Network;
 
 public static class Game
@@ -19,9 +20,15 @@ public static class Game
 
     static Game()
     {
-        Logger.Initialize("KINGDOMS_CLIENT", outputToFile:true);
-        Logger.SetLevel(Logger.LEVEL.TRACE);
-        Logger.SetConsoleFunction(UnityEngine.Debug.Log);
+        logger = new Logger("KINGDOMS", outputToFile:true);
+        logger.SetLevel(Logger.LEVEL.TRACE);  
+        logger.SetConsoleFunction(UnityEngine.Debug.Log);
+
+        RelayServer.Relay.logger = new Logger("RELAY", outputToFile:true, outputToConsole:false);
+        RelayServer.Relay.logger.SetLevel(Logger.LEVEL.TRACE);
+
+        Client.logger = new Logger("NETWORK_CLIENT", outputToFile: true, outputToConsole: false);
+        Client.logger.SetLevel(Logger.LEVEL.TRACE);
 
         // Start relay server
         relayServer = new RelayServer.Relay(
