@@ -16,7 +16,6 @@ public class WorldGenerator : MonoBehaviour
     private void Awake()
     {
         Game.Start();
-        Game.clock.Start();
     }
 
     void Start()

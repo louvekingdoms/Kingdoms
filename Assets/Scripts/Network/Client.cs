@@ -74,11 +74,11 @@ namespace Kingdoms.Network {
                 TimeSpan.Zero,
                 TimeSpan.FromMilliseconds(HEARTBEAT_FREQUENCY));
 
-                
+
             // Listens for messages
-            while (client.Connected && shouldRun)
-            {
-                using (NetworkStream clientStream = client.NewStream())
+            using (NetworkStream clientStream = client.NewStream())
+                while (client.Connected && shouldRun)
+                {
                     if (clientStream.DataAvailable)
                         using (BinaryReader reader = new BinaryReader(clientStream, Encoding.UTF8, leaveOpen: true))
                         {
@@ -86,7 +86,7 @@ namespace Kingdoms.Network {
                             logger.Trace("<< " + msg);
                             ExecuteMessage(msg);
                         }
-            }
+                }
 
             // Client dies if it reaches this place
             heartbeatInterval.Dispose();
@@ -94,7 +94,6 @@ namespace Kingdoms.Network {
 
         void ExecuteMessage(Message message)
         {
-            logger.Trace("RECEIVED: " + message);
             if (ControllerSet.set.ContainsKey(message.controller))
             {
                 ControllerSet.set[message.controller].Execute(this, message);

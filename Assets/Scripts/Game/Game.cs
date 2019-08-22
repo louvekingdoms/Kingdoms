@@ -69,6 +69,9 @@ public static class Game
         new Thread((ThreadStart)delegate {
             networkClient.Run();
         }).Start();
+
+        // For debug purposes, we host a session immediatly
+        networkClient.RequestNewSession();
     }
 
     public static void KillThreads(){

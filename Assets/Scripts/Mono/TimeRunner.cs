@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Logger = KingdomsSharedCode.Generic.Logger;
+using System;
 
 public class TimeRunner : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class TimeRunner : MonoBehaviour
 
         if (display != null)
         {
-            display.text = Game.clock.GetDate().ToString()+" - "+Game.state.Sum();
+            display.text = Game.clock.GetDate().ToString()+" - "+BitConverter.ToString(Game.state.Sum());
         }
     }
 }
