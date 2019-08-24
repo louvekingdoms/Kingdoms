@@ -305,4 +305,16 @@ public class Clock
     {
         return currentDate;
     }
+
+    public ushort GetNextPlannableBeat()
+    {
+        return (ushort)(currentBeat + Game.networkClient.BEAT_FUTURE_GAP);
+    }
+
+    public void Plan(ushort beat, Action action)
+    {
+        var bb = beat.ToByte();
+        if (!beatActions.ContainsKey(bb) || beatActions[bb] == null) beatActions[bb] = new List<Action>();
+        beatActions[bb].Add(action);
+    }
 }

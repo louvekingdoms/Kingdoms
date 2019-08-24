@@ -19,6 +19,8 @@ namespace Kingdoms.Network
             set.Add(    (byte)SESSION_INFO,     new CON_SessionInfo());
             set.Add(    (byte)GO,               new CON_Go());
             set.Add(    (byte)WAIT,             new CON_Wait());
+            set.Add(    (byte)DESYNCHRONIZED,   new CON_Desynchronized());
+            set.Add(    (byte)CHAT,             new CON_Chat());
         }
     }
 }

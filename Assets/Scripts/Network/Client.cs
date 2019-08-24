@@ -18,6 +18,7 @@ namespace Kingdoms.Network {
     public class Client
     {
         public readonly int HEARTBEAT_FREQUENCY = 200;
+        public readonly ushort BEAT_FUTURE_GAP = 2;
         public static Logger logger;
 
         Socket client;
@@ -173,6 +174,19 @@ namespace Kingdoms.Network {
         {
             logger.Trace(">> "+msg);
             stream.Write(msg.Serialize());
+        }
+
+        public void SendGeneric(Message msg)
+        {
+            msg.session = session;
+            if ((msg.session > 0) != hasSession)
+            {
+                logger.Error("Tried to send message " + msg + " while not in a session... Skipping");
+                return;
+            }
+            using (NetworkStream stream = client.NewStream()) {
+                WriteToStream(stream, msg);
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using static GameLogger;
 
 using KingdomsSharedCode.Generic;
 using Kingdoms.Network;
+using KingdomsSharedCode.Networking;
 
 public static class Game
 {
@@ -14,12 +15,14 @@ public static class Game
 
     public static GameState state;
     public static Clock clock;
+    public static Client networkClient;
+    public static Chat chat;
 
-    private static Client networkClient;
     private static RelayServer.Relay relayServer;
 
     static Game()
     {
+        // Initialize loggers
         logger = new Logger("KINGDOMS", outputToFile:true);
         logger.SetLevel(Logger.LEVEL.TRACE);  
         logger.SetConsoleFunction(UnityEngine.Debug.Log);
@@ -41,6 +44,8 @@ public static class Game
         }).Start();
         
         Library.Initialize();
+
+        chat = new Chat();
     }
 
     public static void Hello() { 
