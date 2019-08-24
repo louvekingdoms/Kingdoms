@@ -11,6 +11,8 @@ using static KingdomsSharedCode.Networking.Controller;
 using KingdomsSharedCode.Networking;
 using System.IO;
 using System.Text;
+using KingdomsSharedCode.JSON;
+using System.Threading;
 
 namespace Kingdoms.Network { 
     public class Client
@@ -54,19 +56,15 @@ namespace Kingdoms.Network {
                 e => {
                     using (NetworkStream stream = client.NewStream())
                     {
-                        if (!stream.CanWrite)
-                        {
-                            logger.Warn("Stream closed, reinitializing client...");
-                            Initialize();
-                            return;
-                        }
+                        var body = new JSONObject();
+                        body.Add("sum", Game.state == null ? null : Game.state.Sum().HashToString());
+                        body.Add("beat", Game.clock.GetBeat().ToString());
 
                         WriteToStream(stream, new Message()
                         {
                             controller = (byte)RELAY_HEARTBEAT,
                             session = session,
-                            sumAtBeat = Game.state == null ? null : Game.state.Sum(),
-                            body = Game.clock.GetBeat().ToString()
+                            body = body.ToString()
                         });
                     }
                 },
@@ -79,17 +77,11 @@ namespace Kingdoms.Network {
             using (NetworkStream clientStream = client.NewStream())
                 while (client.Connected && shouldRun)
                 {
-                    if (clientStream.DataAvailable)
-                        using (BinaryReader reader = new BinaryReader(clientStream, Encoding.UTF8, leaveOpen: true))
-                        {
-                            var msg = new Message(reader);
-                            logger.Trace("<< " + msg);
-                            ExecuteMessage(msg);
-                        }
+                    var data = clientStream.ReadMessageData();
+                    var msg = new Message(data);
+                    logger.Trace("<< " + msg);
+                    ExecuteMessage(msg);
                 }
-
-            // Client dies if it reaches this place
-            heartbeatInterval.Dispose();
         }
 
         void ExecuteMessage(Message message)
@@ -172,13 +164,15 @@ namespace Kingdoms.Network {
 
         public void Kill()
         {
+            logger.Info("I have received a termination instruction. Killing myself.");
             shouldRun = false;
+            heartbeatInterval.Dispose();
         }
 
         void WriteToStream(NetworkStream stream, Message msg)
         {
             logger.Trace(">> "+msg);
-            stream.Write(msg);
+            stream.Write(msg.Serialize());
         }
     }
 }

@@ -130,10 +130,12 @@ public class Clock
     async Task AdvanceBeat()
     {
         currentBeatsInCurrentDay++;
+        await BlockUntilCalculationsFinished();
+
         if (currentBeatsInCurrentDay >= beatsPerDay)
         {
             currentBeatsInCurrentDay = 0;
-            await AdvanceDate();
+            AdvanceDate();
         }
         currentBeat++;
     }
@@ -197,12 +199,16 @@ public class Clock
         };
     }
 
-    public async Task AdvanceDate()
+    async Task BlockUntilCalculationsFinished()
     {
-        while (AreCalculationsStillRunning()) {
+        while (AreCalculationsStillRunning())
+        {
             await Task.Delay(10);
         }
+    }
 
+    public void AdvanceDate()
+    {
         int currentDay = currentDate.month.GetDayLocalIndex(currentDate.day);
         currentDay++;
 
