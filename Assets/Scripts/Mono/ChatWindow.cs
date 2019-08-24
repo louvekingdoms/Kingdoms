@@ -23,7 +23,7 @@ public class ChatWindow : MonoBehaviour
                 delegate
                 {
                     var i = Instantiate(exampleLine);
-                    exampleLine.GetComponent<TextMeshProUGUI>().text = $"{author}: {msg}";
+                    exampleLine.GetComponent<TextMeshProUGUI>().text = "{0}: {1}".Format(author, msg);
                     exampleLine.SetActive(true);
                     i.transform.parent = feedGameObject.transform;
                 }

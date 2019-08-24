@@ -36,7 +36,7 @@ public class RegionDisplayer : MaskableGraphic {
 
     public void SetColor(Color c)
     {
-        color = c;
+        color = c.ToUnity();
     }
 
 

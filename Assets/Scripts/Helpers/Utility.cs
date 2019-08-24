@@ -38,47 +38,4 @@ public static class Utility
     {
         return string.Format(str, values);
     }
-
-    public static Color ColorFromHSV(float h, float s, float v)
-    {
-        int hi = (int)Math.Floor(h / 60.0) % 6;
-        float f = (h / 60.0f) - (float)Math.Floor(h / 60.0f);
-
-        float p = v * (1.0f - s);
-        float q = v * (1.0f - (f * s));
-        float t = v * (1.0f - ((1.0f - f) * s));
-
-        byte a = (byte)KMaths.FloorToInt(p * 255);
-        byte b = (byte)KMaths.FloorToInt(q * 255);
-        byte c = (byte)KMaths.FloorToInt(t * 255);
-        byte d = (byte)KMaths.FloorToInt(v * 255);
-
-        Color ret;
-
-        switch (hi)
-        {
-            case 0:
-                ret = Color.FromArgb(d, c, a);
-                break;
-            case 1:
-                ret = Color.FromArgb(c, d, a);
-                break;
-            case 2:
-                ret = Color.FromArgb(a, d, c);
-                break;
-            case 3:
-                ret = Color.FromArgb(a, c, d);
-                break;
-            case 4:
-                ret = Color.FromArgb(c, a, d);
-                break;
-            case 5:
-                ret = Color.FromArgb(d, a, c);
-                break;
-            default:
-                ret = Color.FromArgb(0xFF, 0x00, 0x00, 0x00);
-                break;
-        }
-        return ret;
-    }
 }

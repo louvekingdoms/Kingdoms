@@ -156,7 +156,12 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
 
         logger.Debug("Kingdom " + GetDebugSignature() + " is now named ["+_name+"]") ;
         name = _name;
-        color = Utility.ColorFromHSV(rnd.NextFloat(), (rnd.NextFloat()) / 3f + 0.3f, ((float)rnd.NextFloat()) / 5f + 0.5f);
+        color = Color.FromHSV(
+            rnd.NextFloat(), 
+            rnd.NextFloat() / 3f + 0.3f, 
+            rnd.NextFloat() / 5f + 0.5f
+        );
+        logger.Debug(color.ToString());
     }
 
     public class Behavior

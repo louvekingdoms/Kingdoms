@@ -27,7 +27,7 @@ public static class Pencil
         for (int y = -iRadius; y <= iRadius; y++)
             for (int x = -iRadius; x <= iRadius; x++)
                 if (x * x + y * y <= iRadius * iRadius + iRadius * 0.8)
-                    tex.SetPixel(origin.x + x, origin.y + y, pencilColor);
+                    tex.SetPixel(origin.x + x, origin.y + y, pencilColor.ToUnity());
 
     }
 

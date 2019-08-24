@@ -146,6 +146,7 @@ public class MapDisplayer : MonoBehaviour
                         case DisplayMode.POLITICAL:
                             if (cell.region.IsOwned()) {
                                 var color = cell.region.owner.color;
+
                                 displayer.SetColor(new Color(color.R / 255f, color.G / 255f, color.B / 255f));
                             }
                             break;
