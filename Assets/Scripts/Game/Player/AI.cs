@@ -6,9 +6,17 @@ using System.Threading.Tasks;
 
 public class AI : IBrain
 {
+    readonly int id = 1;
+    Ruler ruler;
+
+    public AI()
+    {
+        id = Game.players.GrabFreeID();
+    }
+
     public int GetId()
     {
-        throw new NotImplementedException();
+        return id;
     }
 
     public bool IsLocal()
@@ -18,7 +26,8 @@ public class AI : IBrain
 
     public void Own(Ruler ruler)
     {
-        throw new NotImplementedException();
+        this.ruler = ruler;
+        ruler.brain = this;
     }
 }
 

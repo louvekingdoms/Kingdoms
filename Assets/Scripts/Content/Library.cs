@@ -9,6 +9,7 @@ public class Library
 {
     static public Dictionary<int, Race> races = new Dictionary<int, Race>();
 
+
     static public void Initialize()
     {
         logger.Info("Initializing library");
@@ -23,6 +24,11 @@ public class Library
 
     static void Load()
     {
+        if (!Game.IsRunningInMainThread())
+        {
+            throw new Exception("Library should only be loaded from the main thread.");
+        }
+
         LoadRegionBehavior();
         LoadRaces();
     }

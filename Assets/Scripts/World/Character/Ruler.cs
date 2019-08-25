@@ -8,6 +8,7 @@ public class Ruler : Character
     public class NoKingdomException : System.Exception { public NoKingdomException(string message) : base(message) { logger.Error(message); } }
 
     public IBrain brain;
+    public Region position;
 
     public Ruler(Name _name, Race _race, int _birthDate = 0, int _age = 0) : base (_name, _race, _birthDate, _age)
     {

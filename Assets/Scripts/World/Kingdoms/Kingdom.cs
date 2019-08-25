@@ -21,24 +21,25 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
     public Resources resources;
      public Map map {get; }
 
-    public Kingdom(int id, string _name, List<Region> _territory, Race _mainRace, Ruler _ruler, string _demonym=null)
+    public Kingdom(int id, string name, List<Region> territory, Race mainRace, Ruler ruler, string demonym=null)
     {
         this.id = id;
-        SetName(_name);
-        mainRace = _mainRace;
-        ruler = _ruler;
-        demonym = _demonym;
-        if (_demonym == null) demonym = name + "'s";
+        SetName(name);
+        this.mainRace = mainRace;
+        this.ruler = ruler;
+        this.demonym = demonym;
+        if (demonym == null) this.demonym = name + "'s";
 
         LoadResourcesDefinitions();
 
-        logger.Debug("Kingdom " + GetDebugSignature() + " (ruled by " + _ruler.name + ":" + _ruler.GetHashCode() + ") is born");
-
-        TakeOwnership(_territory);
+        TakeOwnership(territory);
         mainland = 0;
-        map = _territory[0].map;
+        map = territory[0].map;
+        ruler.position = territory[0];
 
         RegisterClockReceiver();
+
+        logger.Debug("Kingdom " + GetDebugSignature() + " (ruled by " + ruler.name + ":" + ruler.brain.GetId() + ") is born");
     }
 
     void LoadResourcesDefinitions()
