@@ -179,6 +179,7 @@ namespace Kingdoms.Network {
         public void SendGeneric(Message msg)
         {
             msg.session = session;
+            msg.owner = (ushort)Game.players.localPlayer.GetId();
             if ((msg.session > 0) != hasSession)
             {
                 logger.Error("Tried to send message " + msg + " while not in a session... Skipping");

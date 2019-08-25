@@ -17,6 +17,7 @@ public static class Game
     public static Clock clock;
     public static Client networkClient;
     public static Chat chat;
+    public static Players players;
 
     private static RelayServer.Relay relayServer;
 
@@ -46,6 +47,9 @@ public static class Game
         Library.Initialize();
 
         chat = new Chat();
+
+        // Initialize local player and player list
+        players = new Players();
     }
 
     public static void Hello() { 

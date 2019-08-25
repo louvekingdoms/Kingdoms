@@ -48,7 +48,6 @@ public class Library
         try
         {
             race = Interpreter.LoadRace(Paths.RaceMainFile(raceFolderName));
-            logger.Debug(race.rulerCreationRules.characteristicDefinitions.Count.ToString());
             races.Add(race.id, race);
         }
         catch (MoonSharp.Interpreter.InterpreterException e)

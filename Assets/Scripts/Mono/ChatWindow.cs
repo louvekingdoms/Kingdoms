@@ -28,7 +28,6 @@ public class ChatWindow : MonoBehaviour
                     i.transform.parent = feedGameObject.transform;
                 }
             );
-
         };
     }
 }
