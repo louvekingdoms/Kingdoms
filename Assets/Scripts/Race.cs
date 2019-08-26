@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System;
 
 [System.Serializable]
@@ -20,7 +21,10 @@ public class Race
     public Kingdom.Behavior kingdomBehavior = new Kingdom.Behavior();
     public Resource.Definitions resourceDefinitions = new Resource.Definitions();
     public Names names = new Names();
-    
+
+    public Image pawn;
+    public List<Image> portraits = new List<Image>();
+
     public string GetRandomKingdomName()
     {
         return names.kingdoms.PickRandom(Game.state.random);
@@ -29,6 +33,7 @@ public class Race
     public Character.Name GetRandomCharacterName()
     {
         var first = names.first.PickRandom(Game.state.random);
+
         var family = names.family.PickRandom(Game.state.random);
         return new Character.Name(first, family, this);
     }

@@ -14,4 +14,9 @@ public class Disk
     {
         return new List<string>(File.ReadAllLines(filePath));
     }
+
+    static public byte[] ReadAllBytes(string filePath)
+    {
+        return File.ReadAllBytes(filePath);
+    }
 }
