@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Disk
 {
+    // TODO: Encrypt
     static public string ReadAllText(string filePath)
     {
         return string.Join("\n", ReadAllLines(filePath));

@@ -32,17 +32,17 @@ end
 
 
 local function onGameStart(region)
-	region.resources.SetRaw("population", _FUNC_GET_RULE(_RULE_STARTING_POPULATION_PER_REGION).GetInt())
+	region.resources.SetRaw("population", GET_RULE(_RULE_STARTING_POPULATION_PER_REGION).GetInt())
 end
 
 
 function behavior.initialize(region)
 
 	local b = region.behavior
-	_FUNC_REGION_SET_ON_GAME_START(b, onGameStart)
-	_FUNC_REGION_SET_ON_NEW_DAY(b, onNewDay)
-	_FUNC_REGION_SET_ON_NEW_MONTH(b, onNewMonth)
-	_FUNC_REGION_SET_ON_NEW_YEAR(b, onNewYear)		
+	REGION_SET_ON_GAME_START(b, onGameStart)
+	REGION_SET_ON_NEW_DAY(b, onNewDay)
+	REGION_SET_ON_NEW_MONTH(b, onNewMonth)
+	REGION_SET_ON_NEW_YEAR(b, onNewYear)		
 end
 
 return behavior

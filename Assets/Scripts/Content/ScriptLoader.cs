@@ -9,20 +9,25 @@ class ScriptLoader : ScriptLoaderBase
 {
     string basePath;
 
-    public ScriptLoader(string basePath)
+    public ScriptLoader(string baseDirPath)
     {
-        ModulePaths = new string[] { "?.lua" };
-        this.basePath = basePath;
+        IgnoreLuaPathGlobal = true;
+        ModulePaths = new string[] {
+            Path.Combine(Paths.CommonLuaPath(), "?.lua"),
+            Path.Combine(baseDirPath, "?.lua")
+        };
+
+        this.basePath = baseDirPath;
     }
 
     public override object LoadFile(string file, Table globalContext)
     {
-        logger.Info("<SCRIPTLOADER> Module '{0}' was imported)".Format(file));
+        logger.Debug("<SCRIPTLOADER> Requesting import of '{0}')".Format(file));
         return Disk.ReadAllText(Path.Combine(basePath, file));
     }
 
     public override bool ScriptFileExists(string name)
-    {
-        return true;
+    { // TODO: Sandbox
+        return File.Exists(name);
     }
 }

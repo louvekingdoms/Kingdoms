@@ -6,6 +6,7 @@ using static GameLogger;
 using System.IO;
 using System;
 using System.Linq;
+using MoonSharp.Interpreter.Loaders;
 
 public static class Interpreter
 {
@@ -58,13 +59,15 @@ public static class Interpreter
         #endregion
     }
 
-    public static Script CreateScript(string basePath)
+    public static Script CreateScript(string baseDirPath)
     {
         Script script = new Script(CoreModules.Preset_HardSandbox | CoreModules.LoadMethods);
         
-        script.Options.ScriptLoader = new ScriptLoader(basePath);
+        script.Options.ScriptLoader = new ScriptLoader(baseDirPath);
+
         script.Options.DebugPrint = (string o) => { logger.Info("<LUA> "+o); };
 
+        script.Globals["PATH"] = baseDirPath;
 
         script.SetAliases();
         script.SetRulesMacros();
@@ -91,7 +94,7 @@ public static class Interpreter
             script.Globals.Set("_RULE_"+rule.ToString(), DynValue.NewString(rule.ToString()));
         }
 
-        script.Globals["_FUNC_GET_RULE"] = (Func<string, IRuleValue>)((ruleIndex) => {
+        script.Globals["GET_RULE"] = (Func<string, IRuleValue>)((ruleIndex) => {
             return Rules.set[(RULE)Enum.Parse(typeof(RULE), ruleIndex)];
         });
     }
@@ -101,14 +104,15 @@ public static class Interpreter
         script.SetCharacteristicSetFunctions();
         script.SetKingdomBehaviorFunctions();
         script.SetRegionBehaviorFunctions();
+        script.SetHelperFunctions();
     }
 
     static void SetCharacteristicSetFunctions(this Script script)
     {
-        script.Globals["_FUNC_NEW_RESOURCE_DEFINITION"] = (Func<Resource.Definition>)(delegate { return new Resource.Definition(); });
-        script.Globals["_FUNC_NEW_CHARACTERISTIC_DEFINITION"] = (Func<Character.CharacteristicDefinition>)(delegate { return new Character.CharacteristicDefinition(); });
+        script.Globals["NEW_RESOURCE_DEFINITION"] = (Func<Resource.Definition>)(delegate { return new Resource.Definition(); });
+        script.Globals["NEW_CHARACTERISTIC_DEFINITION"] = (Func<Character.CharacteristicDefinition>)(delegate { return new Character.CharacteristicDefinition(); });
 
-        script.Globals["_FUNC_CHARACTERISTIC_SET_ON_CHANGE"] = (Action<Character.CharacteristicDefinition, Closure>)((charDef, action) => {
+        script.Globals["CHARACTERISTIC_SET_ON_CHANGE"] = (Action<Character.CharacteristicDefinition, Closure>)((charDef, action) => {
             charDef.rules.onChange = new Action<Character.Characteristics, int>((characteristics, changeAmount) => {
                 action.Call(
                     DynValue.FromObject(script, characteristics),
@@ -120,7 +124,7 @@ public static class Interpreter
 
     static void SetKingdomBehaviorFunctions(this Script script)
     {
-        script.Globals["_FUNC_KINGDOM_SET_ON_NEW_DAY"] = (Action<Kingdom.Behavior, Closure>)((kingdomBehavior, action) => {
+        script.Globals["KINGDOM_SET_ON_NEW_DAY"] = (Action<Kingdom.Behavior, Closure>)((kingdomBehavior, action) => {
             kingdomBehavior.onNewDay = new Action<Kingdom>((kingdom) => {
                 action.Call(
                     DynValue.FromObject(script, kingdom)
@@ -128,7 +132,7 @@ public static class Interpreter
             });
         });
 
-        script.Globals["_FUNC_KINGDOM_SET_ON_NEW_MONTH"] = (Action<Kingdom.Behavior, Closure>)((kingdomBehavior, action) => {
+        script.Globals["KINGDOM_SET_ON_NEW_MONTH"] = (Action<Kingdom.Behavior, Closure>)((kingdomBehavior, action) => {
             kingdomBehavior.onNewMonth = new Action<Kingdom>((kingdom) => {
                 action.Call(
                     DynValue.FromObject(script, kingdom)
@@ -136,7 +140,7 @@ public static class Interpreter
             });
         });
 
-        script.Globals["_FUNC_KINGDOM_SET_ON_NEW_YEAR"] = (Action<Kingdom.Behavior, Closure>)((kingdomBehavior, action) => {
+        script.Globals["KINGDOM_SET_ON_NEW_YEAR"] = (Action<Kingdom.Behavior, Closure>)((kingdomBehavior, action) => {
             kingdomBehavior.onNewYear = new Action<Kingdom>((kingdom) => {
                 action.Call(
                     DynValue.FromObject(script, kingdom)
@@ -147,33 +151,41 @@ public static class Interpreter
 
     static void SetRegionBehaviorFunctions(this Script script)
     {
-        script.Globals["_FUNC_REGION_SET_ON_NEW_DAY"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
+        script.Globals["REGION_SET_ON_NEW_DAY"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
             regionBehavior.onNewDay = new Action<Region>((region) => {
                 action.Call(
                     DynValue.FromObject(script, region)
                 );
             });
         });
-        script.Globals["_FUNC_REGION_SET_ON_NEW_MONTH"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
+        script.Globals["REGION_SET_ON_NEW_MONTH"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
             regionBehavior.onNewMonth = new Action<Region>((region) => {
                 action.Call(
                     DynValue.FromObject(script, region)
                 );
             });
         });
-        script.Globals["_FUNC_REGION_SET_ON_NEW_YEAR"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
+        script.Globals["REGION_SET_ON_NEW_YEAR"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
             regionBehavior.onNewYear = new Action<Region>((region) => {
                 action.Call(
                     DynValue.FromObject(script, region)
                 );
             });
         });
-        script.Globals["_FUNC_REGION_SET_ON_GAME_START"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
+        script.Globals["REGION_SET_ON_GAME_START"] = (Action<Region.Behavior, Closure>)((regionBehavior, action) => {
             regionBehavior.onGameStart = new Action<Region>((region) => {
                 action.Call(
                     DynValue.FromObject(script, region)
                 );
             });
+        });
+    }
+
+    static void SetHelperFunctions(this Script script)
+    {
+        script.Globals["DISK_LIST_ELEMENTS"] = (Func<string, string[]>)((url) => {
+            var realUrl = Path.Combine(script.Globals.Get("PATH").String , url.RemoveTraversalCharacters());
+            return Directory.GetFileSystemEntries(realUrl);
         });
     }
     #endregion

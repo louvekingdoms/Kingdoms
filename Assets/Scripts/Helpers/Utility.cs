@@ -38,4 +38,9 @@ public static class Utility
     {
         return string.Format(str, values);
     }
+
+    public static string RemoveTraversalCharacters(this string str)
+    {
+        return str.Replace("..", "??");
+    }
 }

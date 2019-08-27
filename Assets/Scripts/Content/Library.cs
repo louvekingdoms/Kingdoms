@@ -7,6 +7,8 @@ using static GameLogger;
 [Serializable]
 public class Library
 {
+    // TODO: Library Sum for checks
+
     static public Dictionary<int, Race> races = new Dictionary<int, Race>();
 
 

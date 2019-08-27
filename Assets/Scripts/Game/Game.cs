@@ -25,7 +25,7 @@ public static class Game
     {
         // Initialize loggers
         logger = new Logger("KINGDOMS", outputToFile:true);
-        logger.SetLevel(Logger.LEVEL.TRACE);  
+        logger.SetLevel(Logger.LEVEL.DEBUG);  
         logger.SetConsoleFunction(UnityEngine.Debug.Log);
 
         RelayServer.Relay.logger = new Logger("RELAY", outputToFile:true, outputToConsole:false);

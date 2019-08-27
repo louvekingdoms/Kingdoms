@@ -4,22 +4,22 @@ function definition.initialize(region)
 	local def = {};
 	
 	-- Accumulated resources
-	local population = _FUNC_NEW_RESOURCE_DEFINITION()
+	local population = NEW_RESOURCE_DEFINITION()
 	population.min = 0
 	population.max = INF
 	
 	-- Dynamic resources
-	local wealth = _FUNC_NEW_RESOURCE_DEFINITION()
+	local wealth = NEW_RESOURCE_DEFINITION()
 	wealth.min = -10
 	wealth.max = 10
 	wealth.start = 0
 	
-	local civilization = _FUNC_NEW_RESOURCE_DEFINITION()
+	local civilization = NEW_RESOURCE_DEFINITION()
 	civilization.min = 0
 	civilization.max = 100
 	civilization.start = 0
 	
-	local defense = _FUNC_NEW_RESOURCE_DEFINITION()
+	local defense = NEW_RESOURCE_DEFINITION()
 	defense.min = 0
 	defense.max = 100
 	defense.start = 0

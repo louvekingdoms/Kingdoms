@@ -58,6 +58,14 @@ public class MapDisplayer : MonoBehaviour
         DrawCells(map);
     }
 
+    public Vector2 GetRegionPawnPosition(Region region)
+    {
+        var site = region.sites[region.capital];
+        var disp = GetSiteDisplayer(site, region);
+
+        return disp.GetComponent<RectTransform>().anchoredPosition;
+    }
+
     void SetHovered(Site site, bool isHovered)
     {
         foreach(var cell in cells) {

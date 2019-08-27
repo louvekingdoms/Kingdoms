@@ -1,19 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class Paths
 {
     // PATHS
     static readonly string basePath = UnityEngine.Application.streamingAssetsPath;
-    static readonly string racesPath = basePath+"/Races";
-    static readonly string gamePath = basePath + "/Game";
-    static readonly string kingdomPath = "Kingdom";
-    static readonly string characterPath = "Character";
+    static readonly string gamePath = Path.Combine(basePath, @"Game");
+    static readonly string commonPath = Path.Combine(basePath, @"Common");
+
+    static readonly string racesPath = Path.Combine(basePath, @"Races");
 
     // FILES
-    static readonly string logFile = "kingdoms.log";
-    static readonly string mainFile = "Main.lua";
-    static readonly string regionFile = "Region.lua";
+    static readonly string logFile = @"kingdoms.log";
+    static readonly string mainFile = @"Main.lua";
+    static readonly string regionFile = @"Region.lua";
 
     // ACCESS
     public static string Races()
@@ -23,22 +24,27 @@ public class Paths
 
     public static string RaceMainFile(string raceFolderName)
     {
-        return RaceNames(raceFolderName) + "/"+ mainFile;
+        return Path.Combine(RaceNames(raceFolderName), mainFile);
     }
     public static string RaceNames(string raceFolderName)
     {
-        return racesPath + "/" + raceFolderName;
+        return Path.Combine(racesPath, raceFolderName);
     }
     public static string RegionDefinitionsFile()
     {
-        return gamePath + "/" + regionFile;
+        return Path.Combine(gamePath, regionFile);
     }
     public static string LogPath()
     {
-        return UnityEngine.Application.persistentDataPath + "/" + "logs";
+        return Path.Combine(UnityEngine.Application.persistentDataPath, "logs");
     }
     public static string LogFile()
     {
-        return LogPath() + "/" + logFile;
+        return Path.Combine(LogPath(), logFile);
+    }
+
+    public static string CommonLuaPath()
+    {
+        return commonPath;
     }
 }

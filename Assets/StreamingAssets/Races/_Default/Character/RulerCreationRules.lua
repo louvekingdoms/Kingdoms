@@ -21,9 +21,9 @@ end
 
 local function genericCharaDef(name, arroganceThreshold)
 	local threshold = arroganceThreshold or 5
-	local c = _FUNC_NEW_CHARACTERISTIC_DEFINITION()
+	local c = NEW_CHARACTERISTIC_DEFINITION()
 	
-	_FUNC_CHARACTERISTIC_SET_ON_CHANGE(c, 
+	CHARACTERISTIC_SET_ON_CHANGE(c, 
 		function(characteristics, change)
 			map(characteristics, change, name, "arrogance", threshold)
 		end
@@ -44,9 +44,9 @@ local function getCharacteristicDefinitions()
 	charaDefs["luck"] = genericCharaDef("luck")
 	
 	
-	local wisdom = _FUNC_NEW_CHARACTERISTIC_DEFINITION()
+	local wisdom = NEW_CHARACTERISTIC_DEFINITION()
 	
-	_FUNC_CHARACTERISTIC_SET_ON_CHANGE(
+	CHARACTERISTIC_SET_ON_CHANGE(
 		wisdom, 
 		function(characteristics, change)
 			reverseMap(characteristics, change, "wisdom", "arrogance", 0)
@@ -54,7 +54,7 @@ local function getCharacteristicDefinitions()
 	)
 	charaDefs["wisdom"] = wisdom 
 	
-	local arrogance = _FUNC_NEW_CHARACTERISTIC_DEFINITION()
+	local arrogance = NEW_CHARACTERISTIC_DEFINITION()
 	arrogance.min = 0
 	arrogance.max = 10
 	arrogance.rules.isFrozen = true

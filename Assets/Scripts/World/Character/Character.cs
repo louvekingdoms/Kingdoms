@@ -10,6 +10,10 @@ public class Character
     public Name name;
     public int age = 20;
     public int birthDate = 1;
+
+    public Image pawn;
+    public Region position;
+
     float health = 100f;
 
     public Character(Name _name, Race _race, int _birthDate = 0, int _age = 0) : this(_race)

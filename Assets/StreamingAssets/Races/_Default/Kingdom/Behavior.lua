@@ -88,9 +88,9 @@ end
 function behavior.initialize(race)
 	local b = race.kingdomBehavior
 	
-	_FUNC_KINGDOM_SET_ON_NEW_DAY(b, onNewDay)
-	_FUNC_KINGDOM_SET_ON_NEW_MONTH(b, onNewMonth)
-	_FUNC_KINGDOM_SET_ON_NEW_YEAR(b, onNewYear)
+	KINGDOM_SET_ON_NEW_DAY(b, onNewDay)
+	KINGDOM_SET_ON_NEW_MONTH(b, onNewMonth)
+	KINGDOM_SET_ON_NEW_YEAR(b, onNewYear)
 end
 
 return behavior;

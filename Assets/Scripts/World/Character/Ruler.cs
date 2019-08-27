@@ -8,15 +8,14 @@ public class Ruler : Character
     public class NoKingdomException : System.Exception { public NoKingdomException(string message) : base(message) { logger.Error(message); } }
 
     public IBrain brain;
-    public Region position;
 
-    public Ruler(Name _name, Race _race, int _birthDate = 0, int _age = 0) : base (_name, _race, _birthDate, _age)
+    public Ruler(Name name, Race race, int birthDate = 0, int age = 0) : base (name, race, birthDate, age)
     {
         name.preTitle = race.rulerTitle;
         Game.players.localPlayer.Own(this);
     }
 
-    Ruler(Race _race) : base(_race) {}
+    Ruler(Race race) : base(race) {}
 
     public static Ruler CreateRuler()
     {
@@ -26,6 +25,9 @@ public class Ruler : Character
         r.name.preTitle = chara.race.rulerTitle;
         r.age = chara.age;
         r.birthDate = chara.birthDate;
+
+        r.pawn = chara.race.pawn;
+
         new AI().Own(r);
 
         return r;
