@@ -12,12 +12,18 @@ public class GameMaster : MonoBehaviour
     [Header("HD")]
     public GameObject hardDataPrefab;
 
+    [Header("FLAGS")]
+    public GameFlags flags;
+
     [Header("SCENE ELEMENTS")]
     public MapDisplayer mapDisplayer;
     public PawnsManager pawnsManager;
 
     void Awake()
     {
+        DontDestroyOnLoad(this.gameObject);
+        Game.Start();
+
         if (hardDataPrefab == null)
         {
             throw new System.Exception("No hard data loaded for game master");
@@ -25,6 +31,11 @@ public class GameMaster : MonoBehaviour
 
         instance = this;
         hd = Instantiate(hardDataPrefab).GetComponent<HardData>();
+    }
+
+    private void Update()
+    {
+        Game.flags = flags;
     }
 
     private void OnLevelWasLoaded(int level)

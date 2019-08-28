@@ -12,12 +12,7 @@ public class WorldGenerator : MonoBehaviour
     public float refreshRate = 0.25f;
 
     public MapDisplayer displayer;
-
-    private void Awake()
-    {
-        Game.Start();
-    }
-
+    
     void Start()
     {
         world = World.Generate(parameters);

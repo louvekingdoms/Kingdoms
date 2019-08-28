@@ -5,12 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using static GameLogger;
 
-public class Player : IBrain
+public class Player : Brain
 {
     int id = 0;
     bool isLocal = false;
     string name = "Player";
-    Ruler ruler;
 
     public Player() : this(Game.players.GrabFreeID()){}
 
@@ -28,19 +27,25 @@ public class Player : IBrain
         };
     }
 
-    public void Own(Ruler ruler)
-    {
-        this.ruler = ruler;
-        ruler.brain = this;
-    }
 
-    public bool IsLocal()
+    public override bool IsLocal()
     {
         return isLocal;
     }
 
-    public int GetId()
+    public override int GetId()
     {
         return id;
+    }
+
+    public override bool CanSeeSecretsOf(Ruler ruler)
+    {
+        if (Game.flags.IS_OMNISCIENT) return true;
+
+        if (ruler.brain == this)
+        {
+            return true;
+        }
+        return false;
     }
 }

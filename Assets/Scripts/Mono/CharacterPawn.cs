@@ -24,6 +24,12 @@ public class CharacterPawn : MonoBehaviour
         if (character.position != null)
         {
             rect.anchoredPosition = mapDisplayer.GetRegionPawnPosition(character.position);
+            rect.sizeDelta = character.pawn.size;
+            image.enabled = true;
+        }
+        else
+        {
+            image.enabled = false;
         }
     }
 

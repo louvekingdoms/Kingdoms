@@ -4,30 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class AI : IBrain
+public class AI : Brain
 {
     readonly int id = 1;
-    Ruler ruler;
 
     public AI()
     {
         id = Game.players.GrabFreeID();
     }
 
-    public int GetId()
+    public override int GetId()
     {
         return id;
     }
 
-    public bool IsLocal()
+    public override bool IsLocal()
     {
         throw new NotImplementedException();
-    }
-
-    public void Own(Ruler ruler)
-    {
-        this.ruler = ruler;
-        ruler.brain = this;
     }
 }
 

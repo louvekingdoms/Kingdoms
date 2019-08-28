@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using static GameLogger;
 using UnityEngine;
 
 public class Image
@@ -30,6 +31,7 @@ public class Image
     public Image(string origin, Vector2Int size, bool autoLoad=true)
     {
         this.origin = origin;
+        this.size = size;
 
         if (autoLoad) Initialize();
     }
@@ -37,18 +39,21 @@ public class Image
     public void Initialize()
     {
         var texture = new Texture2D(size.x, size.y);
+        logger.Debug("Created new image of size " + size);
 
         data = Disk.ReadAllBytes(origin);
 
         ImageConversion.LoadImage(texture, data);
 
         sprite = Sprite.Create(texture, new Rect(new Vector2(0f, 0f), size), new Vector2(size.x / 2f, size.y / 2f));
+        sprite.texture.filterMode = FilterMode.Point;
 
         isInitialized = true;
     }
 
     static Vector2Int ReadTextureSize(string path)
     {
+
         var name = Path.GetFileNameWithoutExtension(path);
         var parts = name.Split('_');
         var sizePart = parts[parts.Length - 1];

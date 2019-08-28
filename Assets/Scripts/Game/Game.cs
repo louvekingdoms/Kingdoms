@@ -13,6 +13,7 @@ public static class Game
 {
     static Thread mainThread = Thread.CurrentThread;
 
+    public static GameFlags flags;
     public static GameState state;
     public static Clock clock;
     public static Client networkClient;
