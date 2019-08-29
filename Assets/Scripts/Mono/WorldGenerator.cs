@@ -25,6 +25,9 @@ public class WorldGenerator : MonoBehaviour
             Region.behavior.onGameStart.Invoke(region);
         }
 
+        // For debug purpose, we give a ruler to the player
+        Game.players.localPlayer.Own(world.kingdoms.PickRandom(Game.state.random).ruler);
+
         StartCoroutine(RefreshDiagram());
     }
 

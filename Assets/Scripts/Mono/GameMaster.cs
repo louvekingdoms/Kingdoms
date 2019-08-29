@@ -21,7 +21,13 @@ public class GameMaster : MonoBehaviour
 
     void Awake()
     {
+        if (FindObjectsOfType<HardData>().Length > 1)
+        {
+            DestroyImmediate(this);
+        }
+
         DontDestroyOnLoad(this.gameObject);
+
         Game.Start();
 
         if (hardDataPrefab == null)
@@ -36,13 +42,5 @@ public class GameMaster : MonoBehaviour
     private void Update()
     {
         Game.flags = flags;
-    }
-
-    private void OnLevelWasLoaded(int level)
-    {
-        if (FindObjectsOfType<HardData>().Length > 1)
-        {
-            DestroyImmediate(this);
-        }
     }
 }

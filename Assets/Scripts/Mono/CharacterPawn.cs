@@ -21,7 +21,9 @@ public class CharacterPawn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (character.position != null)
+        if (character.position != null &&
+           (!(character.GetType() == typeof(Ruler)) || Game.players.localPlayer.CanSeeSecretsOf(character as Ruler))
+        )
         {
             rect.anchoredPosition = mapDisplayer.GetRegionPawnPosition(character.position);
             rect.sizeDelta = character.pawn.size;

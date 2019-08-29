@@ -8,6 +8,7 @@ public class PawnsManager : MonoBehaviour
 
     private void Update()
     {
+        //TODO: Optimize
         var rulers = new List<Ruler>();
         foreach (var kingdom in Game.state.world.kingdoms)
         {
