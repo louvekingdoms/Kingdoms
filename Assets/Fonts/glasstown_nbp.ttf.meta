@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b5512c92c959e7c4f9f5037b2aea4519
+guid: ad3f634ed6c67144d8411b1b1634af92
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -8,9 +8,9 @@ TrueTypeFontImporter:
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
-  fontName: NicerNightie
+  fontName: Glasstown NBP
   fontNames:
-  - NicerNightie
+  - Glasstown NBP
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
