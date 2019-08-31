@@ -224,7 +224,7 @@ public static class Interpreter
     class RegionWrapper
     {
         public Region.Behavior behavior = new Region.Behavior();
-        public Resource.Definitions resourceDefinitions;
+        public Resource.Definitions resourceDefinitions = null;
     }
 
     #endregion

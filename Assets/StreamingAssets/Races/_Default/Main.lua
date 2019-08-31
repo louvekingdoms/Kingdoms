@@ -13,3 +13,4 @@ rulerCreationRules.initialize(_RACE)
 resourceDefinitions.initialize(_RACE)
 kingdomBehavior.initialize(_RACE)
 
+--TODO : List of traveler types
