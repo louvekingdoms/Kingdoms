@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using KingdomsSharedCode.JSON;
 using KingdomsSharedCode.Networking;
 
-namespace Kingdoms.Network.Controllers
+namespace KingdomsGame.Networking.Controllers
 {
     class CON_Chat : Controller
     {

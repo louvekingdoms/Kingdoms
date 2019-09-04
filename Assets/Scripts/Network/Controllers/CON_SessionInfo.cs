@@ -8,7 +8,7 @@ using KingdomsSharedCode.Networking;
 using KingdomsSharedCode.JSON;
 using static KingdomsSharedCode.Generic.Logger;
 
-namespace Kingdoms.Network.Controllers
+namespace KingdomsGame.Networking.Controllers
 {
     class CON_SessionInfo : Controller
     {

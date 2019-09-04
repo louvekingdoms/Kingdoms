@@ -14,7 +14,7 @@ using System.Text;
 using KingdomsSharedCode.JSON;
 using System.Threading;
 
-namespace Kingdoms.Network { 
+namespace KingdomsGame.Networking { 
     public class Client
     {
         public readonly int HEARTBEAT_FREQUENCY = 200;

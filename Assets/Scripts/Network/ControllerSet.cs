@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static KingdomsSharedCode.Networking.Controller;
-using Kingdoms.Network.Controllers;
+using KingdomsGame.Networking.Controllers;
 
-namespace Kingdoms.Network
+namespace KingdomsGame.Networking
 {
     public class ControllerSet
     {

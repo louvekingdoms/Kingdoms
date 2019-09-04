@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using KingdomsSharedCode.Networking;
 using static KingdomsSharedCode.Generic.Logger;
 
-namespace Kingdoms.Network.Controllers
+namespace KingdomsGame.Networking.Controllers
 {
     class CON_Go : Controller
     {
