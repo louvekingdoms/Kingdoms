@@ -103,7 +103,7 @@ public class Clock
                 await Task.Delay(minBeatDuration);
 
                 if (isPaused) continue;
-
+                
                 await AdvanceBeat();
                 ExecuteBeat();
             }
@@ -271,10 +271,18 @@ public class Clock
     void ExecuteAllDailyEvents()
     {
         SanitizeClockReceivers();
-        foreach(var receiver in clockEventsReceivers) {
-            if (receiver is IDaily) {
-                (receiver as IDaily).OnNewDay();
+        try
+        {
+            foreach (var receiver in clockEventsReceivers) {
+                if (receiver is IDaily) {
+                    (receiver as IDaily).OnNewDay();
+                }
             }
+        }
+        catch (MoonSharp.Interpreter.InterpreterException e)
+        {
+            GameLogger.logger.Error(e.DecoratedMessage);
+            UnityEngine.Debug.LogError(e.DecoratedMessage);
         }
         if (onCalculationEnd!=null) onCalculationEnd.Invoke();
     }
@@ -282,10 +290,17 @@ public class Clock
     void ExecuteAllMonthlyEvents()
     {
         SanitizeClockReceivers();
-        foreach (var receiver in clockEventsReceivers) {
-            if (receiver is IMonthly) {
-                (receiver as IMonthly).OnNewMonth();
+        try { 
+            foreach (var receiver in clockEventsReceivers) {
+                if (receiver is IMonthly) {
+                    (receiver as IMonthly).OnNewMonth();
+                }
             }
+        }
+        catch (MoonSharp.Interpreter.InterpreterException e)
+        {
+            GameLogger.logger.Error(e.DecoratedMessage);
+            UnityEngine.Debug.LogError(e.DecoratedMessage);
         }
         ExecuteAllDailyEvents();
     }
@@ -293,10 +308,18 @@ public class Clock
     void ExecuteAllYearlyEvents()
     {
         SanitizeClockReceivers();
-        foreach (var receiver in clockEventsReceivers) {
-            if (receiver is IYearly) {
-                (receiver as IYearly).OnNewYear();
+        try
+        {
+            foreach (var receiver in clockEventsReceivers) {
+                if (receiver is IYearly) {
+                    (receiver as IYearly).OnNewYear();
+                }
             }
+        }
+        catch (MoonSharp.Interpreter.InterpreterException e)
+        {
+            GameLogger.logger.Error(e.DecoratedMessage);
+            UnityEngine.Debug.LogError(e.DecoratedMessage);
         }
         ExecuteAllMonthlyEvents();
     }
@@ -316,5 +339,10 @@ public class Clock
         var bb = beat.ToByte();
         if (!beatActions.ContainsKey(bb) || beatActions[bb] == null) beatActions[bb] = new List<Action>();
         beatActions[bb].Add(action);
+    }
+
+    public void Kill()
+    {
+        beatThread.Abort();
     }
 }

@@ -6,8 +6,7 @@ using System;
 using static GameLogger;
 
 using KingdomsSharedCode.Generic;
-using Kingdoms.Network;
-using KingdomsSharedCode.Networking;
+using KingdomsGame.Networking;
 
 public static class Game
 {
@@ -21,6 +20,9 @@ public static class Game
     public static Players players;
 
     private static RelayServer.Relay relayServer;
+
+    // TODO: Create proper mouse class
+    public static bool isMouseBusy = false;
 
     static Game()
     {
@@ -87,6 +89,7 @@ public static class Game
     public static void KillThreads(){
         networkClient.Kill();
         relayServer.Kill();
+        clock.Kill();
     }
 
     public static bool IsRunningInMainThread()
