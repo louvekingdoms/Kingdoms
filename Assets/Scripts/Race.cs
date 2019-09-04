@@ -55,14 +55,4 @@ public class Race
     {
         return string.Format(plural, name);
     }
-
-    public void AddPortrait(string path)
-    {
-        portraits.Add(new Image(path, true));
-    }
-
-    public void SetPawnImage(string path)
-    {
-        pawn = new Image(path, true);
-    }
 }
