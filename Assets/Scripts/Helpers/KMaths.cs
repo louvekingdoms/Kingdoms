@@ -4,11 +4,19 @@ using System;
 
 public static class KMaths
 {
-    public static int FloorToInt(float a)
+    public static int FloorToInt(this float a)
     {
         return (int)Math.Floor(a);
     }
-    public static int RoundToInt(float a)
+    public static int RoundToInt(this float a)
+    {
+        return (int)Math.Round(a);
+    }
+    public static int FloorToInt(this double a)
+    {
+        return (int)Math.Floor(a);
+    }
+    public static int RoundToInt(this double a)
     {
         return (int)Math.Round(a);
     }

@@ -25,6 +25,12 @@ public class Color
         this.B = B;
     }
 
+    public Color(string color="#FFFFFF") : this(
+        (byte)Convert.ToUInt32(color.ToUpper().Substring(1, 2), 16),
+        (byte)Convert.ToUInt32(color.ToUpper().Substring(3, 2), 16),
+        (byte)Convert.ToUInt32(color.ToUpper().Substring(5, 2), 16)
+    )  {}
+
     public static Color FromHSV(float h, float s, float v)
     {
         return new Color(
@@ -56,7 +62,12 @@ public class Color
 
     public override string ToString()
     {
-        return "R{0} G{1} B{2}".Format(R, G, B);
+        return "R{0} G{1} B{2} / {3}".Format(R, G, B, ToHex());
+    }
+
+    public string ToHex()
+    {
+        return "#{0:X2}{1:X2}{2:X2}".Format(R, G, B);
     }
 
     public UnityEngine.Color ToUnity()

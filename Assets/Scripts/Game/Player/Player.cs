@@ -9,6 +9,7 @@ public class Player : Brain
 {
     int id = 0;
     bool isLocal = false;
+    bool isMaster = true;
     string name = "Player";
 
     public Player() : this(Game.players.GrabFreeID()){}
@@ -33,6 +34,11 @@ public class Player : Brain
         return isLocal;
     }
 
+    public bool IsMaster()
+    {
+        return isMaster;
+    }
+
     public override int GetId()
     {
         return id;
@@ -40,7 +46,7 @@ public class Player : Brain
 
     public override bool CanSeeSecretsOf(Ruler ruler)
     {
-        if (Game.flags.IS_OMNISCIENT) return true;
+        if (Game.flags.IS_OMNISCIENT && isLocal) return true;
 
         if (ruler.brain == this)
         {

@@ -17,6 +17,7 @@ public class Library
         logger.Info("Initializing library");
         Clear();
         Load();
+        logger.Info("Library is initialized");
     }
 
     static void Clear()
