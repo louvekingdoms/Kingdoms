@@ -14,7 +14,7 @@ public class Paths
     // FILES
     static readonly string logFile = @"kingdoms.log";
     static readonly string mainFile = @"Main.lua";
-    static readonly string regionFile = @"Region.lua";
+    static readonly string regionFile = @"RegionConstructor.lua";
 
     // ACCESS
     public static string Races()
