@@ -5,12 +5,17 @@ local resourceDefinitions = require("Kingdom/Definition")
 local baseInfo = require("BaseInfo")
 local content = require("Content")
 
-baseInfo.load(_RACE)
-content.load(_RACE)
+local race = require("Default/Race")
 
-names.initialize(_RACE)
-rulerCreationRules.initialize(_RACE)
-resourceDefinitions.initialize(_RACE)
-kingdomBehavior.initialize(_RACE)
+baseInfo.load(race)
+content.load(race)
 
---TODO : List of traveler types
+names.initialize(race)
+rulerCreationRules.initialize(race)
+
+kingdomBehavior.initialize(race)
+resourceDefinitions.initialize(race)
+
+return race
+
+--TODO : List of traveler types allowed for this race

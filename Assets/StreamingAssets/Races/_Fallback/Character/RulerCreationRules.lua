@@ -5,8 +5,8 @@ local function map(characteristics, change, originalCharaName, targetCharaName, 
 	local characteristic = characteristics[originalCharaName]
 	local target = characteristics[targetCharaName]
 	
-	if characteristic.GetClampedValue() > threshold + math.min(change, 0) then
-		target.SetRaw(target.GetValue() + change)
+	if characteristic.clampedValue > threshold + math.min(change, 0) then
+		target.rawValue = target.rawValue + change
 	end
 end
 
@@ -14,20 +14,17 @@ local function reverseMap(characteristics, change, originalCharaName, targetChar
 	local characteristic = characteristics[originalCharaName]
 	local target = characteristics[targetCharaName]
 	
-	if characteristic.GetClampedValue() > threshold + math.min(change, 0) then
-		target.SetRaw(target.GetValue() - change)
+	if characteristic.clampedValue > threshold + math.min(change, 0) then
+		target.rawValue = (target.clampedValue - change)
 	end
 end
 
 local function genericCharaDef(name, arroganceThreshold)
 	local threshold = arroganceThreshold or 5
-	local c = NEW_CHARACTERISTIC_DEFINITION()
-	
-	CHARACTERISTIC_SET_ON_CHANGE(c, 
-		function(characteristics, change)
-			map(characteristics, change, name, "arrogance", threshold)
-		end
-	)
+	local c = require("Default/CharacteristicDefinition")()
+	c.onChange = function(characteristics, change)
+		map(characteristics, change, name, "arrogance", threshold)
+	end
 	
 	return c	
 end
@@ -44,17 +41,14 @@ local function getCharacteristicDefinitions()
 	charaDefs["luck"] = genericCharaDef("luck")
 	
 	
-	local wisdom = NEW_CHARACTERISTIC_DEFINITION()
+	local wisdom = require("Default/CharacteristicDefinition")()
+	wisdom.onChange = function(characteristics, change)
+		reverseMap(characteristics, change, "wisdom", "arrogance", 0)
+	end
 	
-	CHARACTERISTIC_SET_ON_CHANGE(
-		wisdom, 
-		function(characteristics, change)
-			reverseMap(characteristics, change, "wisdom", "arrogance", 0)
-		end
-	)
 	charaDefs["wisdom"] = wisdom 
 	
-	local arrogance = NEW_CHARACTERISTIC_DEFINITION()
+	local arrogance = require("Default/CharacteristicDefinition")()
 	arrogance.min = 0
 	arrogance.max = 10
 	arrogance.rules.isFrozen = true
@@ -66,15 +60,11 @@ end
 
 function rulerCreationRules.initialize(race)
 
-	local rules = race.rulerCreationRules
-	
-	rules.stock = 15
-	rules.lifespanToStockRatio = 0.2
-	rules.maxStartingAge = 50
-	rules.majority = 15
-	rules.maximumLifespan = 60
+	local rules = require("Default/RulerCreationRules")()
 	
 	rules.characteristicDefinitions = getCharacteristicDefinitions()
+	
+	race.rulerCreationRules = rules
 	
 end
 

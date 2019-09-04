@@ -7,6 +7,7 @@ function baseInfo.load(race)
 	race.plural="{0}s"
 	race.isPlayable=true
 	race.rulerTitle="Keen {0}"
+	race.genders = {0, 1}
 end
 
 return baseInfo

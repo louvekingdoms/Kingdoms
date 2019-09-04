@@ -1,3 +1,5 @@
+
+
 local behavior = {}
 
 local function getStructurePercent(region)
@@ -6,8 +8,8 @@ local function getStructurePercent(region)
 	end
 	
 	return 
-		(region.owner.resources.Get("structure") - region.owner.resources.GetDefinition("structure").min) /
-		(region.owner.resources.GetDefinition("structure").max - region.owner.resources.GetDefinition("structure").min)		
+		(region.owner.resources["structure"].value - region.owner.resources["structure"].definition.min) /
+		(region.owner.resources["structure"].definition.max - region.owner.resources["structure"].definition.min)		
 end
 
 local populationGrowthAmplitude = 0.4
@@ -20,7 +22,7 @@ end
 
 local function onNewMonth(region)
 	local popIncrease = getStructurePercent(region) * populationGrowthAmplitude
-	region.resources["population"].Increase(popIncrease)
+	region.resources["population"].value = region.resources["population"].value + popIncrease
 end
 
 
@@ -32,17 +34,16 @@ end
 
 
 local function onGameStart(region)
-	region.resources.SetRaw("population", GET_RULE(_RULE_STARTING_POPULATION_PER_REGION).GetInt())
+	region.resources["population"].value = GET_RULE(RULE_STARTING_POPULATION_PER_REGION).GetInt()
 end
 
 
 function behavior.initialize(region)
-
 	local b = region.behavior
-	REGION_SET_ON_GAME_START(b, onGameStart)
-	REGION_SET_ON_NEW_DAY(b, onNewDay)
-	REGION_SET_ON_NEW_MONTH(b, onNewMonth)
-	REGION_SET_ON_NEW_YEAR(b, onNewYear)		
+	b.onGameStart = onGameStart
+	b.onNewDay = onNewDay
+	b.onNewMonth = onNewMonth
+	b.onNewYear = onNewYear
 end
 
 return behavior

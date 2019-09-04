@@ -1,52 +1,54 @@
 local definition = {}
 
+local newResource = require("Default/ResourceDefinition")
+
 function definition.initialize(race)
 
 	local def = {};
 	
 	-- Accumulated resources
-	local population = NEW_RESOURCE_DEFINITION()
+	local population = newResource()
 	population.min = 0
 	population.max = INF
 	population.isMutable = false
 	
-	local gold = NEW_RESOURCE_DEFINITION()
+	local gold = newResource()
 	gold.min = 0
 	gold.max = INF
 	gold.noModifiers = true
 	
-	local army = NEW_RESOURCE_DEFINITION()
+	local army = newResource()
 	army.min = 0
 	army.max = INF
 	army.noModifiers = true
 	
 	-- Dynamic resources
-	local wealth = NEW_RESOURCE_DEFINITION()
+	local wealth = newResource()
 	wealth.min = -10
 	wealth.max = 10
 	wealth.start = 0
 	
-	local morale = NEW_RESOURCE_DEFINITION()
+	local morale = newResource()
 	morale.min = -10
 	morale.max = 10
 	morale.start = 0
 	
-	local structure = NEW_RESOURCE_DEFINITION()
+	local structure = newResource()
 	structure.min = -10
 	structure.max = 10
 	structure.start = 0
 	
-	local militarization = NEW_RESOURCE_DEFINITION()
+	local militarization = newResource()
 	militarization.min = 0
 	militarization.max = 100
 	militarization.start = 5
 	
-	local reputation = NEW_RESOURCE_DEFINITION()
+	local reputation = newResource()
 	reputation.min = -10
 	reputation.max = 10
 	reputation.start = 0
 	
-	local threat = NEW_RESOURCE_DEFINITION()
+	local threat = newResource()
 	threat.min = -10
 	threat.max = 10
 	threat.start = 0
@@ -57,7 +59,7 @@ function definition.initialize(race)
 	def["wealth"] = wealth
 	def["morale"] = morale
 	def["structure"] = structure
-	def["militarization"] = population
+	def["militarization"] = militarization
 	def["reputation"] = reputation
 	def["threat"] = threat
 	

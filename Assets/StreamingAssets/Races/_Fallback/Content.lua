@@ -13,14 +13,14 @@ function loadPortraits(race)
 	for _, v in pairs(list) do
 		for _, ext in pairs(allowedExtensions) do
 			if strUtil.endsWith(v, ext) then 
-				race.AddPortrait(v)
+				table.insert(race.portraits, v)
 			end
 		end
 	end
 end
 
 function loadPawn(race)
-	race.SetPawnImage(PATH.."/Data/Pictures/Pawn_32x32.png")
+	race.pawnImage = PATH.."/Data/Pictures/Pawn_32x32.png"
 end
 
 return content
