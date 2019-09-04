@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Traveler : Character
 {
-    Traveler(Race race) : base(race) { }
+    public Traveler(Race race) : base(race) { }
 
 
 }

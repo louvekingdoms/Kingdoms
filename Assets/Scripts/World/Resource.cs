@@ -18,19 +18,26 @@ public class Resource
 
     public void Increase(float amount = 1)
     {
-        var oldVal = value;
-        value = Mathf.Clamp(value + amount, definition.min, definition.max);
+        var val = value + amount;
+        Set(val);
     }
 
     public void Decrease(float amount = 1)
     {
-        var oldVal = value;
-        value = Mathf.Clamp(value - amount, definition.min, definition.max);
+        var val = value - amount;
+        Set(val);
     }
 
     public void SetRaw(float val)
     {
         value = val;
+    }
+
+    public void Set(float val)
+    {
+        var min = definition.min == int.MinValue ? val : definition.min;
+        var max = definition.max == int.MaxValue ? val : definition.max;
+        value = Mathf.Clamp(val, min, max);
     }
 
     public float GetValue()

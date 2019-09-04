@@ -11,15 +11,14 @@ public class Region
     public static Resource.Definitions resourceDefinitions;
 
     public readonly int id;
-     public List<Site> sites = new List<Site>();
+    public List<Site> sites = new List<Site>();
     public int capital;
-     public Map map { get; }
-     public Kingdom owner = null;
+    public Map map { get; }
     public Resources resources;
 
-    public float elevation = 0f;
-    public float moisture = 0f;
-    public float temperature = 0f;
+    public Topography topography = new Topography();
+
+    Kingdom owner = null;
 
     public Region(int id, Map _map, List<Site> _sites, int _capital = 0)
     {
@@ -114,11 +113,42 @@ public class Region
         return owner != null;
     }
 
+    public void MakeOwnedBy(Kingdom kingdom)
+    {
+        kingdom.TakeOwnership(this);
+    }
+
+    public void RemoveOwnership()
+    {
+        if (IsOwned())
+        {
+            owner.RemoveOwnership(this);
+        }
+        owner = null;
+    }
+
+    public void SetRawOwner(Kingdom newOwner=null)
+    {
+        owner = newOwner;
+    }
+
+    public Kingdom GetOwner()
+    {
+        return owner;
+    }
+
     public class Behavior
     {
         public System.Action<Region> onGameStart;
         public System.Action<Region> onNewDay;
         public System.Action<Region> onNewMonth;
         public System.Action<Region> onNewYear;
+    }
+
+    public class Topography
+    {
+        public float elevation = 0f;
+        public float moisture = 0f;
+        public float temperature = 0f;
     }
 }

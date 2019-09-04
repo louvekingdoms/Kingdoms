@@ -64,13 +64,19 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
         foreach (Region region in regions)
         {
             territory.Add(region);
-            if (region.owner != null)
+
+            logger.Trace(
+                "Kingdom " + GetDebugSignature() + 
+                " took ownership of region " + region.GetHashCode() + 
+                (!region.IsOwned() ? "" : ". It previously belonged to " + region.GetOwner().GetDebugSignature())
+            );
+            
+            if (region.IsOwned())
             {
-                region.owner.RemoveOwnership(region);
+                region.RemoveOwnership();
             }
 
-            logger.Trace("Kingdom " + GetDebugSignature() + " took ownership of region " + region.GetHashCode() + (region.owner==null? "" : ". It previously belonged to " + region.owner.GetDebugSignature()));
-            region.owner = this;
+            region.SetRawOwner(this);
         }
     }
 
@@ -82,6 +88,7 @@ public class Kingdom : Clock.IDaily, Clock.IMonthly, Clock.IYearly
         {
             if (territory.Contains(region)) logger.Trace("Kingdom " + GetDebugSignature() + " lost ownership of region " + region.GetHashCode()); ;
             territory.RemoveAll(o => o == region);
+            region.SetRawOwner(null);
         }
     }
 

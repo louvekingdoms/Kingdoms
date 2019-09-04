@@ -7,7 +7,7 @@ using Superbest_random;
 public class World
 {
     public Map map;
-    public List<Kingdom> kingdoms = new List<Kingdom>();
+    public Kingdoms kingdoms = new Kingdoms();
     
     public static World Generate(Map.Parameters paraneters)
     {
@@ -33,7 +33,7 @@ public class World
             for (int j = 0; j < size; j++)
             {
                 List<Region> blobCandidates = kingdom.GetNeighborRegions();
-                blobCandidates.RemoveAll(o => o.owner != null);
+                blobCandidates.RemoveAll(o => o.IsOwned());
 
                 if (blobCandidates.Count <= 0)
                 {
