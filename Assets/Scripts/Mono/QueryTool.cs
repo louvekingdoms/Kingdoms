@@ -23,17 +23,17 @@ public class QueryTool : MonoBehaviour
         if (reg == null) return;
         string kingdom = "none";
 
-        if (reg.owner != null) {
-            var info = new List<string>() { reg.owner.name + " (" + reg.owner.GetMainRace().GetPlural() + ")" };
-            foreach(var rsc in reg.owner.resources.Keys) {
-                info.Add(rsc + ": " + reg.owner.resources[rsc].GetValue());
+        if (reg.IsOwned()) {
+            var info = new List<string>() { reg.GetOwner().name + " (" + reg.GetOwner().GetMainRace().GetPlural() + ")" };
+            foreach(var rsc in reg.GetOwner().resources.Keys) {
+                info.Add(rsc + ": " + reg.GetOwner().resources[rsc].GetValue().FloorToInt().ToString("D"));
             }
             kingdom = " - "+string.Join("\n - ", info);
         }
 
         var regionRsc = new List<string>();
         foreach (var rsc in reg.resources.Keys) {
-            regionRsc.Add(rsc + ": " + reg.resources[rsc].GetValue());
+            regionRsc.Add(rsc + ": " + reg.resources[rsc].GetValue().FloorToInt().ToString("D"));
         }
 
         text.text = string.Join("\n - ", new List<string>() {
@@ -42,9 +42,9 @@ public class QueryTool : MonoBehaviour
             "------",
             string.Join("\n - ", regionRsc),
             "------",
-            "elevation: "+reg.elevation,
-            "moisture: "+reg.moisture,
-            "temperature: "+reg.temperature
+            "elevation: "+reg.topography.elevation,
+            "moisture: "+reg.topography.moisture,
+            "temperature: "+reg.topography.temperature
         }.ToArray());
     }
 }
