@@ -6758,12 +6758,12 @@ PrefabInstance:
     - target: {fileID: 8805355914301993821, guid: 0589d555baf386b4b8f96951beed74b3,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 133
       objectReference: {fileID: 0}
     - target: {fileID: 8805355914301993821, guid: 0589d555baf386b4b8f96951beed74b3,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 264
       objectReference: {fileID: 0}
     - target: {fileID: 8805355914301993821, guid: 0589d555baf386b4b8f96951beed74b3,
         type: 3}
@@ -12054,8 +12054,7 @@ MonoBehaviour:
     bottomFrontier: 0
     leftFrontier: 0
     rightFrontier: 0
-  world:
-    kingdoms: []
+  world: {}
   refreshRate: 0.016666668
   displayer: {fileID: 1318765077}
 --- !u!4 &1945328218
@@ -13751,12 +13750,12 @@ PrefabInstance:
     - target: {fileID: 8805355914301993821, guid: 0589d555baf386b4b8f96951beed74b3,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 133
       objectReference: {fileID: 0}
     - target: {fileID: 8805355914301993821, guid: 0589d555baf386b4b8f96951beed74b3,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 264
       objectReference: {fileID: 0}
     - target: {fileID: 8805355914301993821, guid: 0589d555baf386b4b8f96951beed74b3,
         type: 3}
