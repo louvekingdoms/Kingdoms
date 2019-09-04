@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class MovableWindow : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class MovableWindow : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public RectTransform window;
 
@@ -16,8 +16,19 @@ public class MovableWindow : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         dragStartPosition = window.anchoredPosition - new Vector2(Input.mousePosition.x, Input.mousePosition.y);
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        Game.isMouseBusy = true;
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        Game.isMouseBusy = false;
+    }
+
     public void OnPointerUp(PointerEventData eventData)
     {
+        Game.isMouseBusy = false;
         isDragging = false;
     }
 

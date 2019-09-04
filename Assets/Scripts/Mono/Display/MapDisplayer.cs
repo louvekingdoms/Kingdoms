@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using csDelaunay;
+using UnityEngine.EventSystems;
 
 public class MapDisplayer : MonoBehaviour
 {
@@ -54,7 +55,10 @@ public class MapDisplayer : MonoBehaviour
 
     public void DrawMap(Map map)
     {
-        CheckMousePosition(GetMouseUV());   
+
+        if (!Game.isMouseBusy)
+            CheckMousePosition(GetMouseUV());   
+
         DrawCells(map);
     }
 
@@ -153,7 +157,7 @@ public class MapDisplayer : MonoBehaviour
                     switch (cell.mode) {
                         case DisplayMode.POLITICAL:
                             if (cell.region.IsOwned()) {
-                                var color = cell.region.owner.color;
+                                var color = cell.region.GetOwner().color;
 
                                 displayer.SetColor(new Color(color.R / 255f, color.G / 255f, color.B / 255f));
                             }
