@@ -11,6 +11,7 @@ public class Clock
     public interface IDaily : IClockReceiver { void OnNewDay(); }
     public interface IMonthly : IClockReceiver { void OnNewMonth(); }
     public interface IYearly : IClockReceiver { void OnNewYear(); }
+    public interface IExpirable : IClockReceiver { void Age(); }
 
     #region Calendar-related classes
     public class Date
@@ -276,6 +277,10 @@ public class Clock
             foreach (var receiver in clockEventsReceivers) {
                 if (receiver is IDaily) {
                     (receiver as IDaily).OnNewDay();
+                }
+                if (receiver is IExpirable)
+                {
+                    (receiver as IExpirable).Age();
                 }
             }
         }
