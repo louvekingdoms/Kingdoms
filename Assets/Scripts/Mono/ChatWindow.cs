@@ -25,7 +25,7 @@ public class ChatWindow : MonoBehaviour
                     var i = Instantiate(exampleLine);
                     exampleLine.GetComponent<TextMeshProUGUI>().text = "{0}: {1}".Format(author, msg);
                     exampleLine.SetActive(true);
-                    i.transform.parent = feedGameObject.transform;
+                    i.transform.SetParent(exampleLine.transform.parent);
                 }
             );
         };
