@@ -53,15 +53,23 @@ public class Image
 
     static Vector2Int ReadTextureSize(string path)
     {
-
-        var name = Path.GetFileNameWithoutExtension(path);
-        var parts = name.Split('_');
-        var sizePart = parts[parts.Length - 1];
-        var sizeParts = sizePart.Split('x');
-        var size = new Vector2Int(
-            Convert.ToInt32(sizeParts[0]),
-            Convert.ToInt32(sizeParts[1])
-        );
+        Vector2Int size;
+        try
+        {
+            var name = Path.GetFileNameWithoutExtension(path);
+            var parts = name.Split('_');
+            var sizePart = parts[parts.Length - 1];
+            var sizeParts = sizePart.Split('x');
+            size = new Vector2Int(
+                Convert.ToInt32(sizeParts[0]),
+                Convert.ToInt32(sizeParts[1])
+            );
+        }
+        catch (FormatException e)
+        {
+            logger.Error("Error while reading " + path + ":\n" + e.ToString());
+            throw new Exception();
+        }
 
         return size;
     }

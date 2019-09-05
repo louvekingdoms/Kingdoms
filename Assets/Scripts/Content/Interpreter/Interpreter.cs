@@ -63,17 +63,7 @@ public static class Interpreter
 
     static void SetFunctions(this Script script)
     {
-        script.SetTravelersFunctions();
         script.SetHelperFunctions();
-    }
-
-    static void SetTravelersFunctions(this Script script)
-    {
-        script.Globals["NEW_TRAVELER"] = (Func<int, Traveler>)((race) => { return new Traveler(
-            Library.races[race]    
-        ); });
-        script.Globals["NEW_DISCUSSION_SUBJECT"] = (Func<Subject>)(delegate { return new Subject(); });
-        
     }
 
     static void SetHelperFunctions(this Script script)
@@ -108,7 +98,6 @@ public static class Interpreter
     {
         try
         {
-            var race = new Race();
             var content = Disk.ReadAllText(regionPath);
             var script = CreateScript(Path.GetDirectoryName(regionPath));
 
@@ -124,6 +113,24 @@ public static class Interpreter
         }
     }
 
+
+    public static void LoadTravelers(string travelersPath)
+    {
+        try
+        {
+            var content = Disk.ReadAllText(travelersPath);
+            var script = CreateScript(Path.GetDirectoryName(travelersPath));
+
+            var data = script.DoString(content).Table;
+            
+            Library.subjects = data.Get("subjects").Table.MakeSubjectsFrom();
+        }
+        catch (InterpreterException e)
+        {
+            logger.Error(e.DecoratedMessage);
+            throw new Exception(e.DecoratedMessage);
+        }
+    }
 
     #endregion
 

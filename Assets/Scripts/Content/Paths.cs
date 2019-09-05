@@ -15,6 +15,7 @@ public class Paths
     static readonly string logFile = @"kingdoms.log";
     static readonly string mainFile = @"Main.lua";
     static readonly string regionFile = @"RegionConstructor.lua";
+    static readonly string travelersFile = @"Travelers.lua";
 
     // ACCESS
     public static string Races()
@@ -29,6 +30,10 @@ public class Paths
     public static string RaceNames(string raceFolderName)
     {
         return Path.Combine(racesPath, raceFolderName);
+    }
+    public static string TravelersDefinitionFile()
+    {
+        return Path.Combine(gamePath, travelersFile);
     }
     public static string RegionDefinitionsFile()
     {

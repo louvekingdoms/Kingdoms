@@ -10,6 +10,7 @@ public class Library
     // TODO: Library Sum for checks
 
     static public Dictionary<int, Race> races = new Dictionary<int, Race>();
+    static public Subjects subjects = new Subjects();
 
 
     static public void Initialize()
@@ -34,11 +35,17 @@ public class Library
 
         LoadRegionBehavior();
         LoadRaces();
+        LoadTravelers();
     }
 
     static void LoadRegionBehavior()
     {
         Interpreter.LoadRegion(Paths.RegionDefinitionsFile());
+    }
+
+    static void LoadTravelers()
+    {
+        Interpreter.LoadTravelers(Paths.TravelersDefinitionFile());
     }
 
     static void LoadRaces()
