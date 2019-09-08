@@ -1,0 +1,12 @@
+Font: Tahoma  Style: Bold
+Point Size: 12   SP/PD Ratio: 41.7%
+
+Characters included: 239/239
+Missing characters: 0
+Excluded characters: 0
+
+Characters missing from font file:
+----------------------------------------
+
+Characters excluded from packing:
+----------------------------------------
