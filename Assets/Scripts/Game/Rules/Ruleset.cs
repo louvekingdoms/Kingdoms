@@ -20,7 +20,6 @@ public interface IRuleValue
 
 #region IRules
 
-[Serializable]
 public class RuleFloat : IRuleValue
 {
     float value = 0f;
@@ -31,9 +30,9 @@ public class RuleFloat : IRuleValue
     public bool GetBool(){ throw new System.NotImplementedException(); }
     public float GetFloat(){ return value; }
     public int GetInt() { throw new System.NotImplementedException(); }
+    public override string ToString() { return value.ToString(); }
 }
 
-[Serializable]
 public class RuleInt : IRuleValue
 {
     int value = 0;
@@ -44,9 +43,9 @@ public class RuleInt : IRuleValue
     public bool GetBool() { throw new System.NotImplementedException(); }
     public float GetFloat() { throw new System.NotImplementedException(); }
     public int GetInt() { return value; }
+    public override string ToString() { return value.ToString(); }
 }
 
-[Serializable]
 public class RuleBool : IRuleValue
 {
     bool value = false;
@@ -57,11 +56,11 @@ public class RuleBool : IRuleValue
     public bool GetBool() { return value; }
     public float GetFloat() { throw new System.NotImplementedException(); }
     public int GetInt() { throw new System.NotImplementedException(); }
+    public override string ToString() { return value.ToString(); }
 }
 
 #endregion
 
-[Serializable]
 public class Ruleset : Dictionary<RULE, IRuleValue> {
     public Ruleset()
     {

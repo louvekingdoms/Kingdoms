@@ -190,7 +190,10 @@ public class MapDisplayer : MonoBehaviour
 
     float GetMapBoxSize()
     {
-        return regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        return Mathf.Min(
+            regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x,
+            regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.y
+        );
     }
 
     Vector2 GetMouseUV()
@@ -198,7 +201,7 @@ public class MapDisplayer : MonoBehaviour
         var mouse = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         var layerPos = regionsLayer.GetComponent<RectTransform>().position;
         var layerPos2D = new Vector2(layerPos.x, layerPos.y);
-        var size = regionsLayer.transform.parent.GetComponent<RectTransform>().sizeDelta.x + regionsLayer.GetComponent<RectTransform>().sizeDelta.x;
+        var size = GetMapBoxSize();
         var UVMouse = (mouse - layerPos2D) / size + new Vector2(0.5f, 0.5f);
 
         return UVMouse;

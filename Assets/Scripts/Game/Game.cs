@@ -59,11 +59,10 @@ public static class Game
         // Dummy function to initialize game static constructor
     }
 
-    public static void Start()
+    public static void Start(Ruleset rules = null)
     {
         // Loads all rules from default settings
-        Ruleset rules = new Ruleset();
-        Rules.LoadRuleset(rules);
+        Rules.LoadRuleset(rules == null ? new Ruleset() : rules);
 
         // New reinitialized gamestate
         state = new GameState();
