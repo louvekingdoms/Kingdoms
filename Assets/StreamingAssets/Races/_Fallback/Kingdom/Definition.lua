@@ -24,9 +24,9 @@ function definition.initialize(race)
 	
 	-- Dynamic resources
 	local wealth = newResource()
-	wealth.min = -10
-	wealth.max = 10
-	wealth.start = 0
+	wealth.min = 0
+	wealth.max = INF
+	wealth.isMutable = false
 	
 	local morale = newResource()
 	morale.min = -10
